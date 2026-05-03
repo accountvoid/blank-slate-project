@@ -1,17 +1,19 @@
 import { useLocation, Link } from 'react-router-dom';
 import { User, Swords, Target, BarChart3, Scroll } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-
-const navItems = [
-  { path: '/', icon: User, label: 'الرئيسية', description: 'الصفحة الرئيسية' },
-  { path: '/quests', icon: Scroll, label: 'المهمات', description: 'المهمات اليومية' },
-  { path: '/gates', icon: Swords, label: 'البوابات', description: 'البوابات' },
-  { path: '/stats', icon: BarChart3, label: 'القوى', description: 'إحصائياتك' },
-  { path: '/grand-quest', icon: Target, label: 'الهدف', description: 'هدفك الكبير' },
-];
 
 export const BottomNav = () => {
   const location = useLocation();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { path: '/', icon: User, label: t('nav.home') },
+    { path: '/quests', icon: Scroll, label: t('nav.quests') },
+    { path: '/gates', icon: Swords, label: t('nav.gates') },
+    { path: '/stats', icon: BarChart3, label: t('nav.stats') },
+    { path: '/grand-quest', icon: Target, label: t('nav.grandQuest') },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50">
