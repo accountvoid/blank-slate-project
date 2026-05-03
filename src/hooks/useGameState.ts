@@ -930,6 +930,16 @@ export const useGameState = () => {
     });
   }, []);
 
+  const spendGold = useCallback((amount: number): boolean => {
+    let success = false;
+    setGameState(prev => {
+      if ((prev.gold || 0) < amount) return prev;
+      success = true;
+      return { ...prev, gold: prev.gold - amount };
+    });
+    return success;
+  }, []);
+
   return {
     gameState,
     levelUpInfo,
@@ -945,6 +955,7 @@ export const useGameState = () => {
     purchaseItem,
     useItem,
     consumeItem,
+    spendGold,
     equipTitle,
     unequipTitle,
     takeDamage,
