@@ -296,7 +296,7 @@ const Abilities = () => {
 
                     {level < MAX_SKILL_LEVEL ? (
                       <button
-                        onClick={() => upgradeSkill(skill.id)}
+                        onClick={() => requestUpgrade(skill.id)}
                         disabled={!canUpgrade}
                         className={cn(
                           'flex-1 min-w-[180px] h-12 rounded-xl border-b-4 font-black text-[11px] uppercase tracking-widest transition-all active:translate-y-1 active:border-b-0 flex items-center justify-center gap-2 shadow-lg px-3',
