@@ -6,6 +6,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { Zap, Swords, Target, ArrowUp, Lock, Sparkles, Hexagon, Cpu, ShieldAlert, Hourglass, Coins } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 // Mastery / Upgrade Rank tuning
 const SKILL_LEVEL_MULTIPLIERS = [1, 1.3, 1.6, 2.0, 2.5, 3.0] as const;
