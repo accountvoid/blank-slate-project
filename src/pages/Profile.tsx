@@ -17,6 +17,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 // Floating particle component
 const FloatingParticles = () => {
@@ -57,6 +59,7 @@ const getRankData = (level: number) => getRankFromLevel(level);
 const Profile = () => {
   const { gameState } = useGameState();
   const { signOut } = useAuth();
+  const { t } = useTranslation();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
