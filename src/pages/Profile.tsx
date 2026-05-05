@@ -17,6 +17,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 // Floating particle component
 const FloatingParticles = () => {
@@ -57,6 +59,7 @@ const getRankData = (level: number) => getRankFromLevel(level);
 const Profile = () => {
   const { gameState } = useGameState();
   const { signOut } = useAuth();
+  const { t } = useTranslation();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,18 +139,22 @@ const Profile = () => {
           </SheetTrigger>
           <SheetContent className="bg-background/95 backdrop-blur-xl border-l border-border">
             <div className="mt-10 space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-2xl border border-border/50 bg-card/40">
+                <span className="text-sm font-bold">{t('common.language')}</span>
+                <LanguageSwitcher />
+              </div>
               <Button variant="ghost" className="w-full justify-start gap-3 h-14 rounded-2xl" onClick={() => navigate('/stats')}>
-                <Activity className="w-5 h-5 text-primary" /> <span>الإحصائيات</span>
+                <Activity className="w-5 h-5 text-primary" /> <span>{t('nav.stats')}</span>
               </Button>
               <Button variant="ghost" className="w-full justify-start gap-3 h-14 rounded-2xl">
-                <Settings className="w-5 h-5 text-muted-foreground" /> <span>الإعدادات</span>
+                <Settings className="w-5 h-5 text-muted-foreground" /> <span>{t('profile.settings')}</span>
               </Button>
               <Button variant="ghost" className="w-full justify-start gap-3 h-14 rounded-2xl">
-                <Users className="w-5 h-5 text-muted-foreground" /> <span>الأصدقاء</span>
+                <Users className="w-5 h-5 text-muted-foreground" /> <span>{t('profile.friends')}</span>
               </Button>
               <div className="pt-4 border-t border-border/50">
                 <Button variant="destructive" className="w-full rounded-2xl h-12" onClick={signOut}>
-                  <LogOut className="w-4 h-4 ml-2" /> تسجيل الخروج
+                  <LogOut className="w-4 h-4 ml-2" /> {t('profile.signOut')}
                 </Button>
               </div>
             </div>

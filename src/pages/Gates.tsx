@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { GateLootModal, generateGateLoot, LootItem } from '@/components/GateLootModal';
 import { AlertTriangle, Zap, Target, Clock, X, Skull, Activity, Scan, Shield, Map as MapIcon, LocateFixed, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import { Gate } from '@/types/game';
 
 const useGateTimer = (closingTime?: string) => {
@@ -32,6 +33,7 @@ const useGateTimer = (closingTime?: string) => {
 
 const Gates = () => {
   const { gameState, completeGate } = useGameState();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   
   const [selectedGate, setSelectedGate] = useState<Gate | null>(null);
@@ -155,15 +157,15 @@ const Gates = () => {
           <span className="block text-xs text-blue-400 mt-2 tracking-[0.5em] font-bold uppercase opacity-70">Gate Recognition System</span>
         </h1>
         <div className="mt-4 text-sm text-slate-400">
-          البوابات المتاحة اليوم: <span className="text-white font-bold">{gates.length}</span>
+          {t('gates.availableToday', 'Available gates today')}: <span className="text-white font-bold">{gates.length}</span>
         </div>
       </header>
 
       {gates.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
           <Target className="w-16 h-16 text-slate-600 mb-4" />
-          <h2 className="text-xl font-bold text-slate-400 mb-2">لا توجد بوابات</h2>
-          <p className="text-sm text-slate-500">لم يتم اكتشاف أي بوابات اليوم. عد غداً!</p>
+          <h2 className="text-xl font-bold text-slate-400 mb-2">{t('gates.empty.title', 'No gates')}</h2>
+          <p className="text-sm text-slate-500">{t('gates.empty.subtitle', 'No gates discovered today. Come back tomorrow!')}</p>
         </div>
       ) : (
         <main className="relative z-10 px-6 space-y-40 mt-16">

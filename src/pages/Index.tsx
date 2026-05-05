@@ -207,8 +207,7 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Header with Burger Menu */}
-      <header className="sticky top-0 z-40 flex justify-between items-center p-4 gap-2">
-        <LanguageSwitcher />
+      <header className="sticky top-0 z-40 flex justify-end items-center p-4 gap-2">
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button className="p-2 hover:bg-primary/10 rounded-lg transition-all">

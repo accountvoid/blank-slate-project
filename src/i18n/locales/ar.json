@@ -24,7 +24,65 @@
     "loading": "جاري التحميل...",
     "language": "اللغة",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "back": "رجوع"
+  },
+  "profile": {
+    "title": "رخصة الصياد",
+    "settings": "الإعدادات",
+    "friends": "الأصدقاء",
+    "signOut": "تسجيل الخروج",
+    "rank": "الرتبة",
+    "name": "الاسم",
+    "combatLevel": "مستوى القتال",
+    "manaSyncActive": "تشفير المانا مفعل",
+    "manaSyncDisconnected": "تشفير المانا معطل"
+  },
+  "stats": {
+    "title": "الإحصائيات",
+    "strength": "القوة",
+    "mind": "العقل",
+    "spirit": "الروح",
+    "agility": "الرشاقة"
+  },
+  "quests": {
+    "title": "المهمات",
+    "dailyQuest": "مهمة يومية",
+    "sideQuest": "مهمة جانبية",
+    "newQuest": "مهمة يومية جديدة وصلت!",
+    "completed": "تم إكمال المهمة!",
+    "start": "ابدأ",
+    "complete": "إكمال",
+    "claim": "استلام",
+    "timeLeft": "الوقت المتبقي",
+    "empty": {
+      "title": "لا توجد مهمات متاحة",
+      "subtitle": "أكملت جميع المهمات!"
+    }
+  },
+  "gates": {
+    "title": "البوابات",
+    "enter": "ادخل",
+    "locked": "مغلقة",
+    "completed": "تم الإنجاز",
+    "requiredPower": "القوة المطلوبة",
+    "availableToday": "البوابات المتاحة اليوم",
+    "empty": {
+      "title": "لا توجد بوابات",
+      "subtitle": "لم يتم اكتشاف أي بوابات اليوم. عد غداً!"
+    }
+  },
+  "grandQuest": {
+    "title": "المهمة الكبرى",
+    "start": "ابدأ المهمة الكبرى",
+    "day": "اليوم"
+  },
+  "market": {
+    "title": "السوق",
+    "buy": "شراء",
+    "price": "السعر",
+    "owned": "تملك",
+    "insufficientGold": "ذهب غير كافٍ"
   },
   "abilities": {
     "title": "مصفوفة الجبروت",
@@ -55,10 +113,5 @@
     "confirmCost": "التكلفة",
     "confirmYes": "تأكيد الترقية",
     "confirmNo": "إلغاء"
-  },
-  "quests": {
-    "dailyQuest": "مهمة يومية",
-    "newQuest": "مهمة يومية جديدة وصلت!",
-    "completed": "تم إكمال المهمة بنجاح!"
   }
 }

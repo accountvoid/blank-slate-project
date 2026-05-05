@@ -24,7 +24,65 @@
     "loading": "Loading...",
     "language": "Language",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "back": "Back"
+  },
+  "profile": {
+    "title": "Hunter License",
+    "settings": "Settings",
+    "friends": "Friends",
+    "signOut": "Sign Out",
+    "rank": "Rank",
+    "name": "Name",
+    "combatLevel": "Combat Level",
+    "manaSyncActive": "Mana Sync: Active",
+    "manaSyncDisconnected": "Mana Sync: Disconnected"
+  },
+  "stats": {
+    "title": "Stats",
+    "strength": "Strength",
+    "mind": "Mind",
+    "spirit": "Spirit",
+    "agility": "Agility"
+  },
+  "quests": {
+    "title": "Quests",
+    "dailyQuest": "Daily Quest",
+    "sideQuest": "Side Quest",
+    "newQuest": "Daily Quest has arrived!",
+    "completed": "Quest completed!",
+    "start": "Start",
+    "complete": "Complete",
+    "claim": "Claim",
+    "timeLeft": "Time left",
+    "empty": {
+      "title": "No quests available",
+      "subtitle": "You completed all quests!"
+    }
+  },
+  "gates": {
+    "title": "Gates",
+    "enter": "Enter",
+    "locked": "Locked",
+    "completed": "Cleared",
+    "requiredPower": "Required Power",
+    "availableToday": "Available gates today",
+    "empty": {
+      "title": "No gates",
+      "subtitle": "No gates discovered today. Come back tomorrow!"
+    }
+  },
+  "grandQuest": {
+    "title": "Grand Quest",
+    "start": "Start Grand Quest",
+    "day": "Day"
+  },
+  "market": {
+    "title": "Market",
+    "buy": "Buy",
+    "price": "Price",
+    "owned": "Owned",
+    "insufficientGold": "Not enough gold"
   },
   "abilities": {
     "title": "Ability Core Matrix",
@@ -55,10 +113,5 @@
     "confirmCost": "Cost",
     "confirmYes": "Confirm Upgrade",
     "confirmNo": "Cancel"
-  },
-  "quests": {
-    "dailyQuest": "Daily Quest",
-    "newQuest": "Daily Quest has arrived!",
-    "completed": "Quest completed successfully!"
   }
 }

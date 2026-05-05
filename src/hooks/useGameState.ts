@@ -356,11 +356,31 @@ export const useGameState = () => {
           };
           
           const today = new Date().toISOString().split('T')[0];
-          if (mergedState.lastActiveDate !== today) {
+          const isNewDay = mergedState.lastActiveDate !== today;
+          const needsQuestSeed = isNewDay || !mergedState.quests || mergedState.quests.length === 0;
+          if (needsQuestSeed) {
             mergedState.quests = [...getRotatingQuests(), ...getSideQuests()];
-            mergedState.prayerQuests = mergedState.prayerQuests?.map((p: PrayerQuest) => ({ ...p, completed: false })) || getInitialPrayerQuests();
-            mergedState.gates = getScheduledGates(mergedState.totalLevel || 1);
             mergedState.lastActiveDate = today;
+          }
+          if (!mergedState.prayerQuests || mergedState.prayerQuests.length === 0) {
+            mergedState.prayerQuests = getInitialPrayerQuests();
+          } else if (isNewDay) {
+            mergedState.prayerQuests = mergedState.prayerQuests.map((p: PrayerQuest) => ({ ...p, completed: false }));
+          }
+          if (!mergedState.gates || mergedState.gates.length === 0 || isNewDay) {
+            mergedState.gates = getScheduledGates(mergedState.totalLevel || 1);
+          }
+          // Seed initial collections for brand-new accounts
+          if (!mergedState.abilities || mergedState.abilities.length === 0) {
+            mergedState.abilities = getInitialAbilities();
+          }
+          if (!mergedState.achievements || mergedState.achievements.length === 0) {
+            mergedState.achievements = getInitialAchievements();
+          }
+          // Ensure stat levels object is populated (DB default is {})
+          if (!mergedState.levels || Object.keys(mergedState.levels).length === 0) {
+            mergedState.levels = { strength: 1, mind: 1, spirit: 1, agility: 1 };
+            mergedState.totalLevel = 1;
           }
           setGameState(mergedState);
         } else {
