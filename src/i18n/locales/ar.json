@@ -54,14 +54,23 @@
     "start": "ابدأ",
     "complete": "إكمال",
     "claim": "استلام",
-    "timeLeft": "الوقت المتبقي"
+    "timeLeft": "الوقت المتبقي",
+    "empty": {
+      "title": "لا توجد مهمات متاحة",
+      "subtitle": "أكملت جميع المهمات!"
+    }
   },
   "gates": {
     "title": "البوابات",
     "enter": "ادخل",
     "locked": "مغلقة",
     "completed": "تم الإنجاز",
-    "requiredPower": "القوة المطلوبة"
+    "requiredPower": "القوة المطلوبة",
+    "availableToday": "البوابات المتاحة اليوم",
+    "empty": {
+      "title": "لا توجد بوابات",
+      "subtitle": "لم يتم اكتشاف أي بوابات اليوم. عد غداً!"
+    }
   },
   "grandQuest": {
     "title": "المهمة الكبرى",

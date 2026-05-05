@@ -54,14 +54,23 @@
     "start": "Start",
     "complete": "Complete",
     "claim": "Claim",
-    "timeLeft": "Time left"
+    "timeLeft": "Time left",
+    "empty": {
+      "title": "No quests available",
+      "subtitle": "You completed all quests!"
+    }
   },
   "gates": {
     "title": "Gates",
     "enter": "Enter",
     "locked": "Locked",
     "completed": "Cleared",
-    "requiredPower": "Required Power"
+    "requiredPower": "Required Power",
+    "availableToday": "Available gates today",
+    "empty": {
+      "title": "No gates",
+      "subtitle": "No gates discovered today. Come back tomorrow!"
+    }
   },
   "grandQuest": {
     "title": "Grand Quest",
