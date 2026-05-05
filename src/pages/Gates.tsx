@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { GateLootModal, generateGateLoot, LootItem } from '@/components/GateLootModal';
 import { AlertTriangle, Zap, Target, Clock, X, Skull, Activity, Scan, Shield, Map as MapIcon, LocateFixed, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import { Gate } from '@/types/game';
 
 const useGateTimer = (closingTime?: string) => {
