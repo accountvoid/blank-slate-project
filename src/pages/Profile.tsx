@@ -92,7 +92,7 @@ const Profile = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         await updateProfile({ avatar_url: reader.result as string });
-        toast({ title: "تم تحديث الصورة الشخصية" });
+        toast({ title: t('profile.avatarUpdated') });
       };
       reader.readAsDataURL(file);
     }
@@ -127,7 +127,7 @@ const Profile = () => {
           <div className="flex items-center gap-1 mt-0.5">
              <div className={cn("w-1 h-1 rounded-full", isDiscordLinked ? "bg-emerald-500" : "bg-red-500 animate-pulse")} />
              <span className={cn("text-[7px] font-bold uppercase tracking-widest", isDiscordLinked ? "text-emerald-500/70" : "text-red-500/70")}>
-               {isDiscordLinked ? "Mana Sync: Active" : "Mana Sync: Disconnected"}
+               {isDiscordLinked ? t('profile.manaSyncActive') : t('profile.manaSyncDisconnected')}
              </span>
           </div>
         </div>
@@ -174,21 +174,21 @@ const Profile = () => {
                 <ShieldOff className="w-6 h-6 text-red-500" />
               </div>
               <div className="flex-1">
-                <h4 className="text-xs font-black text-red-500 uppercase tracking-tighter">تشفير المانا معطل!</h4>
-                <p className="text-[10px] text-red-400/80 font-bold">يرجى ربط حساب الديسكورد لتفعيل تشفير البيانات وتأمين النظام.</p>
+                <h4 className="text-xs font-black text-red-500 uppercase tracking-tighter">{t('profile.manaSyncDisconnected')}</h4>
+                <p className="text-[10px] text-red-400/80 font-bold">{t('profile.manaSyncWarning')}</p>
               </div>
-              <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/40 text-red-500 hover:bg-red-500/20">تفعيل</Button>
+              <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/40 text-red-500 hover:bg-red-500/20">{t('profile.activate')}</Button>
             </div>
           </div>
         ) : (
           <div className="relative overflow-hidden bg-emerald-500/5 border border-emerald-500/20 rounded-2xl px-4 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
                <ShieldCheck className="w-4 h-4 text-emerald-500" />
-               <span className="text-[9px] font-black text-emerald-500/80 uppercase tracking-[0.1em]">تشفير المانا مفعل</span>
+               <span className="text-[9px] font-black text-emerald-500/80 uppercase tracking-[0.1em]">{t('profile.manaSyncActive')}</span>
             </div>
             <div className="flex items-center gap-1.5">
                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-               <span className="text-[8px] font-mono text-emerald-500/60 font-bold tracking-widest leading-none">SECURE</span>
+               <span className="text-[8px] font-mono text-emerald-500/60 font-bold tracking-widest leading-none">{t('profile.secure')}</span>
             </div>
           </div>
         )}
@@ -259,7 +259,7 @@ const Profile = () => {
 
               {/* Name + Title + Level */}
               <div className="flex-1 min-w-0 space-y-1">
-                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">Hunter Name</p>
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">{t('profile.hunterName')}</p>
                 <h2 className="text-xl font-black text-foreground uppercase tracking-tight truncate drop-shadow-sm">
                   {gameState.playerName}
                 </h2>
@@ -278,7 +278,7 @@ const Profile = () => {
             {/* Level Display - Cinematic */}
             <div className="flex items-end justify-between mb-5">
               <div>
-                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Combat Level</p>
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">{t('profile.combatLevel')}</p>
                 <div className="flex items-baseline gap-1">
                   <span className="text-[10px] font-black text-muted-foreground uppercase">LV.</span>
                   <span className={cn(
@@ -293,7 +293,7 @@ const Profile = () => {
               {/* System ID */}
               <div 
                 className="flex flex-col items-end gap-1.5"
-                onClick={() => { navigator.clipboard.writeText(profile?.player_id || ''); toast({ title: "Copied!" }); }}
+                onClick={() => { navigator.clipboard.writeText(profile?.player_id || ''); toast({ title: t('profile.copied') }); }}
               >
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-card/60 rounded-xl border border-border/50 cursor-pointer hover:border-primary/30 transition-all group">
                   <Fingerprint className="w-3.5 h-3.5 text-primary/50" />
@@ -343,7 +343,7 @@ const Profile = () => {
         )}>
           <div className="flex items-center gap-2 mb-3 px-1">
             <Swords className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground/70">Power Levels</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground/70">{t('profile.powerLevels')}</h3>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
@@ -386,17 +386,17 @@ const Profile = () => {
           <div className="flex items-center justify-between mb-3 px-1">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-primary" />
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground/70">Battle Records</h3>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground/70">{t('profile.battleRecords')}</h3>
             </div>
-            <span className="text-[8px] font-bold text-muted-foreground/50 uppercase tracking-widest">Live Sync</span>
+            <span className="text-[8px] font-bold text-muted-foreground/50 uppercase tracking-widest">{t('profile.liveSync')}</span>
           </div>
 
           <div className="grid grid-cols-4 gap-2">
             {[
-              { icon: Flame, label: 'Streak', value: gameState.streakDays, suffix: 'd', color: 'text-orange-400' },
-              { icon: Target, label: 'Gates', value: completedGates, suffix: '', color: 'text-purple-400' },
-              { icon: Award, label: 'Quests', value: completedQuests, suffix: '', color: 'text-blue-400' },
-              { icon: Crown, label: 'Gold', value: gameState.gold, suffix: '', color: 'text-amber-400' },
+              { icon: Flame, label: t('profile.stats.streak'), value: gameState.streakDays, suffix: 'd', color: 'text-orange-400' },
+              { icon: Target, label: t('profile.stats.gates'), value: completedGates, suffix: '', color: 'text-purple-400' },
+              { icon: Award, label: t('profile.stats.quests'), value: completedQuests, suffix: '', color: 'text-blue-400' },
+              { icon: Crown, label: t('profile.stats.gold'), value: gameState.gold, suffix: '', color: 'text-amber-400' },
             ].map((item, i) => (
               <div key={item.label} className="bg-card/60 border border-border/30 rounded-2xl p-3 text-center transition-all hover:border-primary/20 hover:-translate-y-1">
                 <item.icon className={cn("w-4 h-4 mx-auto mb-1.5 drop-shadow-[0_0_5px_currentColor]", item.color)} />
@@ -417,21 +417,21 @@ const Profile = () => {
               <Button className="h-16 bg-primary hover:bg-primary/90 rounded-2xl border-none shadow-[0_8px_30px_hsl(var(--primary)/0.3)] transition-all active:scale-95 flex items-center gap-3 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500 -skew-x-12" />
                 <div className="p-2 bg-primary-foreground/20 rounded-xl relative z-10"><Scan className="w-5 h-5 text-primary-foreground" /></div>
-                <span className="text-xs font-black uppercase tracking-[0.15em] text-primary-foreground relative z-10">Scan</span>
+                <span className="text-xs font-black uppercase tracking-[0.15em] text-primary-foreground relative z-10">{t('profile.scan')}</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] bg-card border-border rounded-3xl p-0 overflow-hidden text-foreground shadow-2xl">
               {searchMode === 'main' && (
                 <div className="p-8 space-y-6">
-                  <h2 className="text-center font-black text-primary italic text-2xl tracking-tighter">SEARCH HUB</h2>
+                  <h2 className="text-center font-black text-primary italic text-2xl tracking-tighter">{t('profile.search.hub')}</h2>
                   <div className="grid grid-cols-1 gap-4">
                     <button onClick={() => setSearchMode('id')} className="h-24 bg-card border border-border rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-all group">
                       <Fingerprint className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
-                      <span className="text-xs font-black tracking-widest uppercase text-foreground/80">ID Entry</span>
+                      <span className="text-xs font-black tracking-widest uppercase text-foreground/80">{t('profile.search.idEntry')}</span>
                     </button>
                     <button onClick={() => setSearchMode('qr')} className="h-24 bg-card border border-border rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-all group">
                       <QrCode className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
-                      <span className="text-xs font-black tracking-widest uppercase text-foreground/80">QR Scanner</span>
+                      <span className="text-xs font-black tracking-widest uppercase text-foreground/80">{t('profile.search.qrScanner')}</span>
                     </button>
                   </div>
                 </div>
@@ -455,9 +455,9 @@ const Profile = () => {
           </Dialog>
 
           {[
-            { icon: Settings, label: 'Settings', action: () => {} },
-            { icon: History, label: 'History', action: () => {} },
-            { icon: Users, label: 'Friends', action: () => {} },
+            { icon: Settings, label: t('profile.settings'), action: () => {} },
+            { icon: History, label: t('profile.history'), action: () => {} },
+            { icon: Users, label: t('profile.friends'), action: () => {} },
           ].map((btn) => (
             <Button 
               key={btn.label}
@@ -478,7 +478,7 @@ const Profile = () => {
         )}>
           <div className="flex items-center gap-1.5">
             <Eye className="w-3 h-3" />
-            <span className="text-[8px] font-black uppercase tracking-widest">Encryption: {isDiscordLinked ? 'SECURE' : 'VULNERABLE'}</span>
+            <span className="text-[8px] font-black uppercase tracking-widest">{t('profile.encryption')}: {isDiscordLinked ? t('profile.secure') : t('profile.vulnerable')}</span>
           </div>
           <span className="text-[8px] font-mono font-bold uppercase">v0.1-DARK_SYSTEM</span>
         </div>
