@@ -81,6 +81,10 @@ const Quests = () => {
     { id: 'agility', label: 'AGI', icon: Zap },
   ];
 
+  if (profileLoading) {
+    return <LoadingScreen fullScreen message="QUESTS" />;
+  }
+
   return (
     <div className="min-h-screen bg-[#020817] text-white p-3 font-sans pb-24">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
