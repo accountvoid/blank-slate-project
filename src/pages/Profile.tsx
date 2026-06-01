@@ -242,7 +242,7 @@ const Profile = () => {
                   rankData.gradient
                 )} />
                 <div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-card bg-card shadow-2xl">
-                  <img src={null || "/setvoid.png"} className="w-full h-full object-cover" alt="avatar" />
+                  <img src="/setvoid.png" className="w-full h-full object-cover" alt="avatar" />
                 </div>
                 <button 
                   onClick={() => fileInputRef.current?.click()} 
