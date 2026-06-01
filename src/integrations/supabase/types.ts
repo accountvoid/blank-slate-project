@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      gates: {
+        Row: {
+          created_at: string
+          id: string
+          id_gate: string
+          name_gate: string
+          power_gate: number
+          rank_gate: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          id_gate: string
+          name_gate: string
+          power_gate?: number
+          rank_gate?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          id_gate?: string
+          name_gate?: string
+          power_gate?: number
+          rank_gate?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          gold_player: number
+          hp_player: number
+          id_player: string
+          level_player: number
+          mb_player: number
+          name_player: string
+          rank_player: string
+          stats_player: Json
+          updated_at: string
+          user_id: string
+          void_player: number
+        }
+        Insert: {
+          created_at?: string
+          gold_player?: number
+          hp_player?: number
+          id_player: string
+          level_player?: number
+          mb_player?: number
+          name_player?: string
+          rank_player?: string
+          stats_player?: Json
+          updated_at?: string
+          user_id: string
+          void_player?: number
+        }
+        Update: {
+          created_at?: string
+          gold_player?: number
+          hp_player?: number
+          id_player?: string
+          level_player?: number
+          mb_player?: number
+          name_player?: string
+          rank_player?: string
+          stats_player?: Json
+          updated_at?: string
+          user_id?: string
+          void_player?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
