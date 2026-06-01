@@ -148,6 +148,10 @@ const Gates = () => {
     );
   }
 
+  if (profileLoading) {
+    return <LoadingScreen fullScreen message="GATES" />;
+  }
+
   return (
     <div className="min-h-screen bg-[#020203] text-white font-sans selection:bg-purple-500/30 pb-40 overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none">
