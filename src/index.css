@@ -99,6 +99,27 @@
     @apply bg-background text-foreground font-arabic antialiased;
     background: var(--gradient-dark);
     min-height: 100vh;
+    position: relative;
+  }
+
+  /* Global SETVOID logo watermark */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('/SETVOIDUI.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: min(70vw, 520px);
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+    filter: drop-shadow(0 0 40px hsl(270 100% 60% / 0.4));
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
   }
 }
 
@@ -586,30 +607,17 @@
     animation: scan-line 4s linear infinite;
   }
 
-  /* Notification Glitch Animation */
+  /* Notification Glitch Animation - simplified to avoid mid-animation screenshot tearing */
   @keyframes notification-glitch {
     0% {
-      transform: scale(0.8) translateY(20px);
+      transform: scale(0.95) translateY(10px);
       opacity: 0;
-      filter: blur(10px);
-    }
-    20% {
-      transform: scale(1.02) translateY(-5px) skewX(-2deg);
-      opacity: 1;
-      filter: blur(0);
-    }
-    40% {
-      transform: scale(0.98) translateY(2px) skewX(1deg);
-    }
-    60% {
-      transform: scale(1.01) translateY(-2px) skewX(-0.5deg);
-    }
-    80% {
-      transform: scale(0.99) translateY(1px);
+      filter: blur(4px);
     }
     100% {
       transform: scale(1) translateY(0);
       opacity: 1;
+      filter: blur(0);
     }
   }
 
