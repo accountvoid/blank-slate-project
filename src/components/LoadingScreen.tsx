@@ -20,19 +20,11 @@ export const LoadingScreen = ({ fullScreen = false, message, className }: Loadin
       )}
     >
       <img
-        src="/SETVOIDUI.png"
-        alt="SETVOID"
-        className="h-10 w-auto object-contain opacity-90 mb-2"
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src = '/setvoid.png';
-        }}
-      />
-      <img
         src="/Loadingsetvoid.gif"
-        alt="Loading"
-        className="w-20 h-20 object-contain"
+        alt="SETVOID Loading"
+        className="w-28 h-28 object-contain"
         onError={(e) => {
-          (e.currentTarget as HTMLImageElement).style.display = 'none';
+          (e.currentTarget as HTMLImageElement).src = '/SETVOIDUI.png';
         }}
       />
       {message && (
