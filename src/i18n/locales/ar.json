@@ -284,5 +284,61 @@
     "confirmCost": "التكلفة",
     "confirmYes": "تأكيد الترقية",
     "confirmNo": "إلغاء"
+  },
+  "items": {
+    "categories": {
+      "consumable": "مستهلك",
+      "weapon": "سلاح",
+      "special_material": "مادة خاصة",
+      "utility": "أداة",
+      "stone": "حجر"
+    },
+    "stats": {
+      "health": "الصحة",
+      "damage": "الضرر",
+      "durability": "المتانة",
+      "blows": "ضربة",
+      "uses": "استخدام",
+      "useOnly": "استخدام واحد فقط",
+      "usesCount": "{{count}} استخدامات"
+    },
+    "hp_elixir": { "name": "إكسير الصحة", "description": "يستعيد 50% من الصحة." },
+    "mp_elixir": { "name": "إكسير المانا", "description": "يستعيد 50% من المانا." },
+    "xp_book": { "name": "كتاب الخبرة", "description": "يمنح 75 نقطة خبرة." },
+    "stone_dagger": { "name": "خنجر حجري", "description": "سلاح أساسي للمبتدئين." },
+    "shadow_dagger": { "name": "خنجر الظلال", "description": "سلاح قوي مشحون بطاقة الظلام." },
+    "cutting_stones": { "name": "أحجار القطع", "description": "شظية حجر سحري. ادمج 5 منها لصنع حجر مانا." },
+    "mana_stone": { "name": "حجر المانا", "description": "حجر نادر يمنحك إجراءً واحداً قوياً." },
+    "mana_analyst": { "name": "محلل المانا", "description": "أداة لتحليل طاقة العناصر." }
+  },
+  "marketExt": {
+    "merge": "دمج",
+    "mergeProgress": "{{have}}/{{need}}",
+    "mergeReady": "جاهز للدمج",
+    "mergedSuccess": "تم صنع حجر مانا!",
+    "mergedFailed": "تحتاج {{need}} من أحجار القطع",
+    "useStone": "استخدام الحجر"
+  },
+  "manaStone": {
+    "title": "حجر المانا",
+    "subtitle": "اختر إجراءً واحداً. سيُستهلك الحجر فوراً.",
+    "actions": {
+      "exit_gate": { "name": "الخروج من البوابة", "desc": "يخرجك بأمان من البوابة الحالية." },
+      "system_chat": { "name": "محادثة النظام", "desc": "افتح جلسة تواصل مؤقتة." },
+      "ability_development": { "name": "تطوير القدرات", "desc": "استخدم الحجر لتعزيز قدراتك." },
+      "name_change": { "name": "تغيير الاسم", "desc": "غيّر اسم شخصيتك." },
+      "grand_mission": { "name": "الوصول للمهمة الكبرى", "desc": "فعّل وصول مهمة كبرى." }
+    },
+    "exitGateOnly": "متاح فقط داخل البوابة",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "consumed": "تم استهلاك حجر المانا"
+  },
+  "gateRewards": {
+    "title": "غنائم البوابة",
+    "collect": "جمع الغنائم",
+    "revealing": "جارٍ الكشف...",
+    "guaranteed": "الذهب مضمون",
+    "bonusChance": "فرصة بنسبة 15% لكل عنصر"
   }
 }

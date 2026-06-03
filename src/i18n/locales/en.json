@@ -284,5 +284,61 @@
     "confirmCost": "Cost",
     "confirmYes": "Confirm Upgrade",
     "confirmNo": "Cancel"
+  },
+  "items": {
+    "categories": {
+      "consumable": "Consumable",
+      "weapon": "Weapon",
+      "special_material": "Special Material",
+      "utility": "Utility",
+      "stone": "Stone"
+    },
+    "stats": {
+      "health": "Health",
+      "damage": "Damage",
+      "durability": "Durability",
+      "blows": "Blows",
+      "uses": "Uses",
+      "useOnly": "1 Use Only",
+      "usesCount": "{{count}} Uses Only"
+    },
+    "hp_elixir": { "name": "HP Elixir", "description": "Restores 50% HP." },
+    "mp_elixir": { "name": "MP Elixir", "description": "Restores 50% MP." },
+    "xp_book": { "name": "XP Book", "description": "Grants 75 XP." },
+    "stone_dagger": { "name": "Stone Dagger", "description": "A basic weapon for new hunters." },
+    "shadow_dagger": { "name": "Dagger of Shadows", "description": "A powerful weapon charged with shadow energy." },
+    "cutting_stones": { "name": "Cutting Stones", "description": "A fragment of magical stone. Merge 5 into one Mana Stone." },
+    "mana_stone": { "name": "Mana Stone", "description": "A rare stone granting one powerful action." },
+    "mana_analyst": { "name": "Mana Analyst", "description": "A tool to analyze item energy." }
+  },
+  "marketExt": {
+    "merge": "Merge",
+    "mergeProgress": "{{have}}/{{need}}",
+    "mergeReady": "Ready to Merge",
+    "mergedSuccess": "Mana Stone forged!",
+    "mergedFailed": "Need {{need}} Cutting Stones",
+    "useStone": "Use Stone"
+  },
+  "manaStone": {
+    "title": "Mana Stone",
+    "subtitle": "Choose one action. The stone will be consumed immediately.",
+    "actions": {
+      "exit_gate": { "name": "Exit Gate", "desc": "Safely exit the current gate." },
+      "system_chat": { "name": "System Chat", "desc": "Open a temporary communication session." },
+      "ability_development": { "name": "Ability Development", "desc": "Use the stone to enhance abilities." },
+      "name_change": { "name": "Name Change", "desc": "Change your character's name." },
+      "grand_mission": { "name": "Grand Mission Access", "desc": "Activate a grand mission slot." }
+    },
+    "exitGateOnly": "Only available while inside a gate",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "consumed": "Mana Stone consumed"
+  },
+  "gateRewards": {
+    "title": "Gate Rewards",
+    "collect": "Collect Loot",
+    "revealing": "Revealing...",
+    "guaranteed": "Gold guaranteed",
+    "bonusChance": "15% chance for each item"
   }
 }
