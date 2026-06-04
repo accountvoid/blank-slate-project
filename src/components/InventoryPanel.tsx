@@ -204,6 +204,7 @@ export const InventoryPanel = ({ inventory, gameState, onUseItem, onEquipTitle, 
   const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
   const [showStoneModal, setShowStoneModal] = useState(false);
   const [stoneItem, setStoneItem] = useState<InventoryItem | null>(null);
+  const [showManaStone, setShowManaStone] = useState(false);
 
   // الحصول على كمية العنصر في المخزون
   const getItemQuantity = (itemId: string): number => {
@@ -432,18 +433,23 @@ export const InventoryPanel = ({ inventory, gameState, onUseItem, onEquipTitle, 
                     <button
                       onClick={() => {
                         const invItem = inventory.find(i => i.id === selectedItem.id);
-                        if (invItem) {
-                          // Special stones get their own modal
-                          const specialStoneIds = ['rename_stone', 'gate_exit_stone', 'grand_quest_stone', 'central_activation_stone'];
-                          if (specialStoneIds.includes(selectedItem.id)) {
-                            setStoneItem(invItem);
-                            setShowStoneModal(true);
-                            setSelectedItem(null);
-                          } else {
-                            setSelectedInventoryItem(invItem);
-                            setShowUseModal(true);
-                            setSelectedItem(null);
-                          }
+                        if (!invItem) return;
+                        // Mana Stone opens its dedicated action modal
+                        if (selectedItem.id === 'mana_stone') {
+                          setShowManaStone(true);
+                          setSelectedItem(null);
+                          return;
+                        }
+                        // Special stones get their own modal
+                        const specialStoneIds = ['rename_stone', 'gate_exit_stone', 'grand_quest_stone', 'central_activation_stone'];
+                        if (specialStoneIds.includes(selectedItem.id)) {
+                          setStoneItem(invItem);
+                          setShowStoneModal(true);
+                          setSelectedItem(null);
+                        } else {
+                          setSelectedInventoryItem(invItem);
+                          setShowUseModal(true);
+                          setSelectedItem(null);
                         }
                       }}
                       className={cn(
@@ -546,6 +552,16 @@ export const InventoryPanel = ({ inventory, gameState, onUseItem, onEquipTitle, 
           }}
         />
       )}
+
+      {/* Mana Stone Action Modal */}
+      <ManaStoneModal
+        show={showManaStone}
+        onClose={() => setShowManaStone(false)}
+        onConsume={() => {
+          onConsumeItem?.('mana_stone', 1);
+          return true;
+        }}
+      />
     </div>
   );
 };
