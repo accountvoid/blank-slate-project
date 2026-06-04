@@ -22,7 +22,7 @@ export const LoadingScreen = ({ fullScreen = false, message, className }: Loadin
       <img
         src="/Loadingsetvoid.gif"
         alt="SETVOID Loading"
-        className="W-60 h-60 object-contain"
+        className="W-90 h-90 object-contain"
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).src = '/SETVOIDUI.png';
         }}
