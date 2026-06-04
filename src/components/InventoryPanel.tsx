@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { X, Package, Zap, Eye, Key, FlaskConical, Crown, Star, Lock, BarChart3 } from 'lucide-react';
+import { X, Package, Zap, Eye, Key, FlaskConical, Crown, Star, Lock, BarChart3, Gem, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ItemUseModal } from './ItemUseModal';
 import { ItemAnalysisModal } from './ItemAnalysisModal';
 import { StoneUseModal } from './StoneUseModal';
+import { ManaStoneModal } from './ManaStoneModal';
 import { GameState, StatType, InventoryItem } from '@/types/game';
 
 // نظام ألوان الندرة
@@ -161,6 +162,28 @@ const SHOP_ITEMS: ShopItem[] = [
     icon: <Key className="w-6 h-6" />,
     effect: 'خروج آمن',
     price: 8000,
+  },
+  {
+    id: 'cutting_stones',
+    name: 'Cutting Stones',
+    arabicName: 'أحجار القطع',
+    description: 'ادمج 5 منها في السوق لصنع حجر مانا',
+    category: 'Material',
+    rarity: 'C',
+    icon: <Gem className="w-6 h-6" />,
+    effect: '5 → حجر مانا',
+    price: 7000,
+  },
+  {
+    id: 'mana_stone',
+    name: 'Mana Stone',
+    arabicName: 'حجر المانا',
+    description: 'حجر نادر يمنحك إجراءً قوياً واحداً',
+    category: 'Stone',
+    rarity: 'B',
+    icon: <Sparkles className="w-6 h-6" />,
+    effect: 'إجراء خاص',
+    price: 0,
   },
 ];
 
