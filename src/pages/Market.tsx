@@ -20,9 +20,10 @@ const Market = () => {
   const [scanResult, setScanResult] = useState<'idle' | 'searching' | 'failed'>('idle');
   const [activeItem, setActiveItem] = useState(null);
 
+  // --- حالات متجر الذهب الجبارة ---
   const [showGoldShop, setShowGoldShop] = useState(false);
   const [goldShopExiting, setGoldShopExiting] = useState(false);
-  const [paymentStep, setPaymentStep] = useState('offers'); 
+  const [paymentStep, setPaymentStep] = useState('offers'); // offers, details, confirm
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [transactionId, setTransactionId] = useState('');
@@ -42,6 +43,7 @@ const Market = () => {
     E: { border: 'border-gray-600', text: 'text-gray-400', locked: false },
   };
 
+  // SETVOID catalog — names/descriptions are resolved via i18n at render time.
   const SOLO_ITEMS = [
     { id: 'hp_elixir',      i18nKey: 'items.hp_elixir',      category: 'consumable',       difficulty: 'E', price: 300,   icon: '🧪', rankLevel: 0, extra: t('items.stats.useOnly') },
     { id: 'mp_elixir',      i18nKey: 'items.mp_elixir',      category: 'consumable',       difficulty: 'E', price: 300,   icon: '⚡', rankLevel: 0, extra: t('items.stats.useOnly') },
@@ -138,37 +140,24 @@ const Market = () => {
       </div>
 
       {showGoldShop && (
-        <div className={cn(
-          "fixed inset-0 z-[120] flex items-end justify-center sm:items-center p-0 sm:p-4 backdrop-blur-xl transition-all duration-500",
-          goldShopExiting ? "bg-black/0" : "bg-black/80"
-        )}>
-          <div className={cn(
-            "relative w-full max-w-lg bg-[#050b18] border-t-2 sm:border-2 border-blue-500/40 shadow-[0_-20px_50px_rgba(59,130,246,0.2)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
-            goldShopExiting ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
-          )}>
+        <div className={cn("fixed inset-0 z-[120] flex items-end justify-center sm:items-center p-0 sm:p-4 backdrop-blur-xl transition-all duration-500", goldShopExiting ? "bg-black/0" : "bg-black/80")}>
+          <div className={cn("relative w-full max-w-lg bg-[#050b18] border-t-2 sm:border-2 border-blue-500/40 shadow-[0_-20px_50px_rgba(59,130,246,0.2)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]", goldShopExiting ? "translate-y-full opacity-0" : "translate-y-0 opacity-100")}>
             <div className="p-4 border-b border-blue-500/20 flex justify-between items-center bg-blue-950/20">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Coins className="w-6 h-6 text-yellow-500 animate-pulse" />
                   <div className="absolute inset-0 blur-md bg-yellow-500/50" />
                 </div>
-                <h2 className="text-sm font-black tracking-[0.2em] uppercase italic text-blue-100">
-                  Gold Exchange <span className="text-blue-500">Terminal</span>
-                </h2>
+                <h2 className="text-sm font-black tracking-[0.2em] uppercase italic text-blue-100">Gold Exchange <span className="text-blue-500">Terminal</span></h2>
               </div>
               <button onClick={closeGoldShop} className="p-2 hover:bg-white/5 transition-colors text-slate-400"><X /></button>
             </div>
-
             <div className="p-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
               {paymentStep === 'offers' && (
                 <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <p className="text-[10px] text-blue-400/60 uppercase font-bold tracking-[0.3em] mb-2">Available Credits:</p>
                   {GOLD_OFFERS.map((offer) => (
-                    <div 
-                      key={offer.id}
-                      onClick={() => { setSelectedOffer(offer); setPaymentStep('details'); }}
-                      className="group relative cursor-pointer active:scale-[0.98] transition-all"
-                    >
+                    <div key={offer.id} onClick={() => { setSelectedOffer(offer); setPaymentStep('details'); }} className="group relative cursor-pointer active:scale-[0.98] transition-all">
                       <div className="absolute -inset-1 bg-blue-500/10 blur opacity-0 group-hover:opacity-100 transition duration-500" />
                       <div className="relative bg-black/40 border border-slate-200/20 p-4 flex justify-between items-center overflow-hidden">
                         <div className="flex items-center gap-4">
@@ -189,7 +178,6 @@ const Market = () => {
                   ))}
                 </div>
               )}
-
               {paymentStep === 'details' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                    <div className="bg-blue-500/5 border border-blue-500/20 p-4 relative overflow-hidden">
@@ -209,7 +197,6 @@ const Market = () => {
                         </div>
                       </div>
                    </div>
-
                    <div className="space-y-3">
                       <p className="text-[10px] text-blue-400/60 uppercase font-bold tracking-[0.3em]">Payment Protocol:</p>
                       {[
@@ -218,13 +205,7 @@ const Market = () => {
                         { id: 'zain', name: 'Zain Cash / AsiaPay', icon: <Zap className="w-4 h-4"/>, info: 'Mobile Number: 0770 123 4567' }
                       ].map(method => (
                         <div key={method.id} className="space-y-2">
-                           <button 
-                              onClick={() => setPaymentMethod(method.id)}
-                              className={cn(
-                                "w-full flex items-center justify-between p-4 border transition-all duration-300",
-                                paymentMethod === method.id ? "bg-blue-600/20 border-blue-400 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "bg-black/40 border-white/10 text-slate-500"
-                              )}
-                           >
+                           <button onClick={() => setPaymentMethod(method.id)} className={cn("w-full flex items-center justify-between p-4 border transition-all duration-300", paymentMethod === method.id ? "bg-blue-600/20 border-blue-400 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "bg-black/40 border-white/10 text-slate-500")}>
                               <div className="flex items-center gap-3">
                                 {method.icon}
                                 <span className="text-xs font-bold uppercase tracking-widest">{method.name}</span>
@@ -240,37 +221,21 @@ const Market = () => {
                         </div>
                       ))}
                    </div>
-                   
-                   <button 
-                    disabled={!paymentMethod}
-                    onClick={() => setPaymentStep('confirm')}
-                    className="w-full py-4 bg-blue-600 text-white font-black uppercase tracking-[0.4em] text-[10px] disabled:opacity-20 flex items-center justify-center gap-2 group"
-                  >
+                   <button disabled={!paymentMethod} onClick={() => setPaymentStep('confirm')} className="w-full py-4 bg-blue-600 text-white font-black uppercase tracking-[0.4em] text-[10px] disabled:opacity-20 flex items-center justify-center gap-2 group">
                     Initialize Transfer <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               )}
-
               {paymentStep === 'confirm' && (
                 <div className="space-y-6 animate-in zoom-in-95 duration-500">
                   <div className="bg-red-500/5 border border-red-500/20 p-4">
-                    <p className="text-[10px] text-red-400 font-bold uppercase leading-relaxed">
-                      Verification required: Upload the transaction receipt and enter the ID to finalize the synchronization.
-                    </p>
+                    <p className="text-[10px] text-red-400 font-bold uppercase leading-relaxed">Verification required: Upload the transaction receipt and enter the ID to finalize the synchronization.</p>
                   </div>
-
                   <div className="space-y-4">
                     <div className="space-y-2">
                         <label className="text-[10px] text-slate-500 uppercase font-black">Transaction Hash / Bill ID</label>
-                        <input 
-                            type="text" 
-                            value={transactionId}
-                            onChange={(e) => setTransactionId(e.target.value)}
-                            className="w-full bg-black/40 border-2 border-slate-200/20 p-4 text-sm focus:border-blue-500 outline-none font-mono text-blue-400 transition-all"
-                            placeholder="TX-8829-100X"
-                        />
+                        <input type="text" value={transactionId} onChange={(e) => setTransactionId(e.target.value)} className="w-full bg-black/40 border-2 border-slate-200/20 p-4 text-sm focus:border-blue-500 outline-none font-mono text-blue-400 transition-all" placeholder="TX-8829-100X" />
                     </div>
-                    
                     <div className="space-y-2">
                         <label className="text-[10px] text-slate-500 uppercase font-black">Proof of Acquisition (Image)</label>
                         <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-200/10 hover:border-blue-500/40 cursor-pointer transition-all bg-black/20 group">
@@ -279,23 +244,9 @@ const Market = () => {
                             <input type="file" className="hidden" />
                         </label>
                     </div>
-
                     <div className="flex gap-2">
-                        <button 
-                            onClick={() => setPaymentStep('details')}
-                            className="px-4 bg-slate-900 border border-slate-800 text-slate-500 uppercase text-[10px] font-bold"
-                        >
-                            Back
-                        </button>
-                        <button 
-                            onClick={() => {
-                                toast({ title: "Verifying...", description: "Request sent to the Shadows." });
-                                closeGoldShop();
-                            }}
-                            className="flex-1 py-4 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 transition-all"
-                        >
-                            Finalize Request
-                        </button>
+                        <button onClick={() => setPaymentStep('details')} className="px-4 bg-slate-900 border border-slate-800 text-slate-500 uppercase text-[10px] font-bold">Back</button>
+                        <button onClick={() => { toast({ title: "Verifying...", description: "Request sent to the Shadows." }); closeGoldShop(); }} className="flex-1 py-4 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 transition-all">Finalize Request</button>
                     </div>
                   </div>
                 </div>
@@ -306,21 +257,12 @@ const Market = () => {
       )}
 
       {isScanning && (
-        <div className={cn(
-          "fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md transition-all duration-[1000ms]",
-          isVisible && !isExiting ? "bg-black/90" : "bg-black/0 pointer-events-none"
-        )}>
-          <div className={cn(
-            "relative bg-[#050b18] border-x border-white/40 shadow-[0_0_50px_rgba(59,130,246,0.4)] max-w-sm w-full font-mono overflow-hidden transition-all ease-[cubic-bezier(0.2,1,0.2,1)] origin-center",
-            isVisible && !isExiting ? "opacity-100 scale-y-100 duration-[1000ms]" : "opacity-0 scale-y-0 duration-[800ms]"
-          )}>
+        <div className={cn("fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md transition-all duration-[1000ms]", isVisible && !isExiting ? "bg-black/90" : "bg-black/0 pointer-events-none")}>
+          <div className={cn("relative bg-[#050b18] border-x border-white/40 shadow-[0_0_50px_rgba(59,130,246,0.4)] max-w-sm w-full font-mono overflow-hidden transition-all ease-[cubic-bezier(0.2,1,0.2,1)] origin-center", isVisible && !isExiting ? "opacity-100 scale-y-100 duration-[1000ms]" : "opacity-0 scale-y-0 duration-[800ms]")}>
             <div className={cn("absolute top-0 left-0 right-0 h-[1px] bg-white shadow-[0_0_15px_rgba(255,255,255,1)] transition-all duration-[1500ms] delay-500", isVisible && !isExiting ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0")} />
             <div className={cn("absolute bottom-0 left-0 right-0 h-[1px] bg-white shadow-[0_0_15px_rgba(255,255,255,1)] transition-all duration-[1500ms] delay-500", isVisible && !isExiting ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0")} />
-            
             <div className={cn("p-6 text-center space-y-4 transition-all duration-1000 delay-700", isVisible && !isExiting ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
-              <h2 className="text-blue-400 text-lg font-bold tracking-[0.2em] uppercase italic drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">
-                {scanResult === 'searching' ? t('market.scan.analyzing') : t('market.scan.denied')}
-              </h2>
+              <h2 className="text-blue-400 text-lg font-bold tracking-[0.2em] uppercase italic drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">{scanResult === 'searching' ? t('market.scan.analyzing') : t('market.scan.denied')}</h2>
               {scanResult === 'searching' ? (
                 <div className="py-10 flex flex-col items-center gap-4">
                   <div className="relative">
@@ -346,15 +288,10 @@ const Market = () => {
         <h1 className="text-xl font-bold tracking-[0.1em] uppercase italic text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]">
           {t('market.systemStore')}
         </h1>
-        <div 
-          onClick={openGoldShop}
-          className="group cursor-pointer bg-blue-950/40 border border-blue-400/50 px-3 py-1 flex items-center gap-2 hover:border-blue-300 transition-all active:scale-95"
-        >
+        <div onClick={openGoldShop} className="group cursor-pointer bg-blue-950/40 border border-blue-400/50 px-3 py-1 flex items-center gap-2 hover:border-blue-300 transition-all active:scale-95">
           <Coins className="w-3.5 h-3.5 text-yellow-400 group-hover:rotate-12 transition-transform" />
-          <span className="font-mono font-bold text-blue-100 drop-shadow-[0_0_10px_rgba(255,255,255,0.7)] text-sm">
-            {gameState.gold.toLocaleString()}
-          </span>
-          <div className="bg-blue-500/20 px-1 rounded text-[10px] text-blue-400 font-bold group-hover:bg-blue-400/40">+</div>
+          <span className="font-mono font-bold text-blue-100 drop-shadow-[0_0_10px_rgba(255,255,255,0.7)] text-sm">{gameState.gold.toLocaleString()}</span>
+          <div className="bg-blue-500/20 px-1 rounded text-[10px] text-blue-400 font-bold group-hover:bg-blue-500/40">+</div>
         </div>
       </header>
 
@@ -367,21 +304,21 @@ const Market = () => {
           return (
             <div key={item.id} className="relative group">
               <div className="absolute -inset-0.5 bg-blue-500/20 blur-sm opacity-0 group-hover:opacity-100 transition duration-500" />
-              {/* الكارد المعدل بشكل أسطوري */}
-              <div className="relative bg-[#050b18] border-2 border-slate-200/90 p-4 shadow-[0_0_20px_rgba(30,58,138,0.3)] overflow-hidden">
-                
+              
+              {/* الكارد المحدث هنا */}
+              <div className="relative bg-[#050b18] border-2 border-slate-200/90 p-4 shadow-[0_0_20px_rgba(30,58,138,0.3)] transition-all active:scale-[0.98] overflow-hidden">
                 {/* الشعار في الخلفية */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-                  <span className="text-[12rem]">{item.icon}</span>
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+                   <span className="text-[12rem]">{item.icon}</span>
                 </div>
 
-                {/* header مع الخطوط */}
-                <div className="flex justify-center items-center gap-4 mb-4">
-                  <div className="h-[1px] w-full bg-gradient-to-r from-transparent to-blue-500" />
+                {/* header الكارد */}
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent to-blue-500"></div>
                   <div className="flex flex-col items-center">
-                    <h2 className="text-[10px] font-bold tracking-[0.2em] text-blue-400 uppercase italic">Market</h2>
+                    <span className="text-[10px] font-bold text-blue-400 tracking-[0.2em] uppercase italic">Market</span>
                   </div>
-                  <div className="h-[1px] w-full bg-gradient-to-l from-transparent to-blue-500" />
+                  <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent to-blue-500"></div>
                 </div>
 
                 <div className="flex justify-center mb-4">
@@ -426,16 +363,7 @@ const Market = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handlePurchase(item)}
-                      disabled={isAlphaLocked && isRevealed}
-                      className={cn(
-                        "flex-1 mt-2 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-all border",
-                        !isRevealed ? "bg-blue-900/40 border-blue-500/50 text-blue-400" :
-                        isAlphaLocked ? "bg-slate-900/50 border-slate-800 text-slate-600" :
-                        gameState.gold >= item.price ? "bg-blue-500/10 border-blue-400/40 text-blue-300" : "bg-red-900/20 border-red-500/30 text-red-400"
-                      )}
-                    >
+                    <button onClick={() => handlePurchase(item)} disabled={isAlphaLocked && isRevealed} className={cn("flex-1 mt-2 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-all border", !isRevealed ? "bg-blue-900/40 border-blue-500/50 text-blue-400" : isAlphaLocked ? "bg-slate-900/50 border-slate-800 text-slate-600" : gameState.gold >= item.price ? "bg-blue-500/10 border-blue-400/40 text-blue-300" : "bg-red-900/20 border-red-500/30 text-red-400")}>
                       {!isRevealed ? t('market.analyze') : isAlphaLocked ? t('market.lockedShort') : t('market.purchase')}
                     </button>
                     {isRevealed && !isAlphaLocked && (
@@ -451,23 +379,7 @@ const Market = () => {
                         <span className="uppercase tracking-widest">🔮 {t('marketExt.merge')}</span>
                         <span>{t('marketExt.mergeProgress', { have: cuttingStonesOwned, need: CUTTING_NEED })}</span>
                       </div>
-                      <button
-                        onClick={() => {
-                          const ok = mergeCuttingStones();
-                          toast({
-                            title: ok ? t('common.successTitle') : t('common.warningTitle'),
-                            description: ok ? t('marketExt.mergedSuccess') : t('marketExt.mergedFailed', { need: CUTTING_NEED }),
-                            variant: ok ? undefined : 'destructive',
-                          });
-                        }}
-                        disabled={cuttingStonesOwned < CUTTING_NEED}
-                        className={cn(
-                          "w-full py-2 text-[10px] font-black uppercase tracking-widest border",
-                          cuttingStonesOwned >= CUTTING_NEED
-                            ? "bg-cyan-500/20 border-cyan-400/50 text-cyan-200 active:scale-95"
-                            : "bg-slate-900/50 border-slate-800 text-slate-600 cursor-not-allowed"
-                        )}
-                      >
+                      <button onClick={() => { const ok = mergeCuttingStones(); toast({ title: ok ? t('common.successTitle') : t('common.warningTitle'), description: ok ? t('marketExt.mergedSuccess') : t('marketExt.mergedFailed', { need: CUTTING_NEED }), variant: ok ? undefined : 'destructive' }); }} disabled={cuttingStonesOwned < CUTTING_NEED} className={cn("w-full py-2 text-[10px] font-black uppercase tracking-widest border", cuttingStonesOwned >= CUTTING_NEED ? "bg-cyan-500/20 border-cyan-400/50 text-cyan-200 active:scale-95" : "bg-slate-900/50 border-slate-800 text-slate-600 cursor-not-allowed")}>
                         {cuttingStonesOwned >= CUTTING_NEED ? t('marketExt.mergeReady') : t('marketExt.merge')}
                       </button>
                     </div>
