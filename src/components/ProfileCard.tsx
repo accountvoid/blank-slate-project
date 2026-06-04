@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dumbbell, Brain, Heart, Flame, Shield, Zap, Bell, Target, Scroll, Crown, Trophy, Smartphone } from 'lucide-react';
+import { Dumbbell, Brain, Heart, Flame, Shield, Zap, Bell, Smartphone } from 'lucide-react';
 import { GameState, Gate } from '@/types/game';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -29,31 +29,24 @@ const stats = [
 
 export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: ProfileCardProps) => {
   const { t } = useTranslation();
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showTestGateNotif, setShowTestGateNotif] = useState(false);
   const [testGate, setTestGate] = useState<Gate | null>(null);
-  const { playNotification } = useSoundEffects();
   const { 
     permission, 
     isSupported, 
-    isReady,
     requestPermission, 
-    notifyNewGate, 
-    notifyNewQuest,
-    notifyAchievement 
   } = usePushNotifications();
   
-  // Single source of truth: use computed totalLevel from gameState
   const totalLevel = gameState.totalLevel;
   const todayQuests = gameState.quests.filter(q => q.completed && q.isMainQuest !== false).length;
   const totalQuests = gameState.quests.filter(q => q.isMainQuest !== false).length;
   const rankColor = getRankColor(totalLevel);
-  const hpPercentage = (gameState.hp / gameState.maxHp) * 100;
-  const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
+  const hpPercentage = Math.min(100, Math.max(0, (gameState.hp / gameState.maxHp) * 100));
+  const energyPercentage = Math.min(100, Math.max(0, (gameState.energy / gameState.maxEnergy) * 100));
 
   return (
     <>
-      <div className={cn("profile-card", rankColor.border, totalLevel >= 50 && "shadow-2xl")}>
+      <div className={cn("profile-card relative flex flex-col", rankColor.border, totalLevel >= 50 && "shadow-2xl")}>
         <div className="corner-decoration corner-tl" />
         <div className="corner-decoration corner-tr" />
         <div className="corner-decoration corner-bl" />
@@ -61,13 +54,17 @@ export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: Profi
         
         <div className="scan-line" />
 
+        {/* الشعار في الأعلى */}
+        <div className="flex justify-center pt-4 pb-2">
+           <img src="/src/assets/SETVOIDUI.png" alt="Logo" className="h-8 w-auto" />
+        </div>
+
         <div className="status-header">
           <h2>{t('profile.title')}</h2>
         </div>
 
         <div className="p-6">
           <div className="flex items-center gap-6 mb-4">
-            {/* القسم الأيسر: المعلومات */}
             <div className="flex-1 flex flex-col gap-1 text-right" dir="rtl">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-primary/70 font-bold">{t('common.name')}:</span>
@@ -79,16 +76,12 @@ export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: Profi
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-primary/70 font-bold">{t('common.title')}:</span>
-                <span className="text-sm text-primary">
+                <span className="text-sm text-primary truncate max-w-[100px]">
                   {gameState.equippedTitle || '-'}
                 </span>
-                {gameState.equippedTitle && (
-                  <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded">{t('common.equipped')}</span>
-                )}
               </div>
             </div>
 
-            {/* القسم الأيمن: اللفل */}
             <div className="text-center">
               <div className={cn("text-5xl font-bold glow-text", rankColor.text)}>{totalLevel}</div>
               <div className="text-[10px] text-muted-foreground tracking-widest font-bold">{t('common.level')}</div>
@@ -96,7 +89,7 @@ export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: Profi
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div>
+            <div className="overflow-hidden">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1">
                   <Shield className="w-4 h-4 text-destructive" />
@@ -108,7 +101,7 @@ export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: Profi
                 <div className="stats-bar-fill bg-destructive" style={{ width: `${hpPercentage}%` }} />
               </div>
             </div>
-            <div>
+            <div className="overflow-hidden">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1">
                   <Zap className="w-4 h-4 text-secondary" />
@@ -150,8 +143,8 @@ export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: Profi
               const progress = getXpProgress(xp);
 
               return (
-                <div key={stat.key} className="flex items-center gap-3 p-3 rounded-lg bg-card/30 border border-primary/10">
-                  <Icon className={cn('w-5 h-5', stat.color)} />
+                <div key={stat.key} className="flex items-center gap-3 p-3 rounded-lg bg-card/30 border border-primary/10 overflow-hidden">
+                  <Icon className={cn('w-5 h-5 shrink-0', stat.color)} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className={cn('text-sm font-bold', stat.color)}>{stat.label}</span>
@@ -166,7 +159,6 @@ export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: Profi
             })}
           </div>
 
-          {/* حالة الإشعارات وتفعيلها */}
           {isSupported && (
             <div className="mt-4 p-3 bg-card/50 border border-primary/20 rounded-lg">
               <div className="flex items-center justify-between mb-2">
@@ -196,7 +188,6 @@ export const ProfileCard = ({ gameState, getXpProgress, onUpdateProfile }: Profi
         </div>
       </div>
 
-      {/* إشعار البوابة */}
       <NewGateNotification
         show={showTestGateNotif}
         gate={testGate}
