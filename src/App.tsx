@@ -35,7 +35,7 @@ const AppContent = () => {
 
   // Show loading splash while checking auth
   if (authLoading) {
-    return <LoadingScreen fullScreen message="SETVOID" />;
+    return <LoadingScreen fullScreen message="SETVOID" className="scale-150" />;
   }
 
   // If not authenticated, not onboarded, or needs password setup - show onboarding
