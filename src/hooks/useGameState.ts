@@ -198,9 +198,9 @@ const getRandomEnergyDensity = (rank: string): string => {
 };
 
 const getInitialInventory = (): InventoryItem[] => [
-  { id: 'health_potion', name: 'زجاجة الدم', description: 'تزيد الدم بنسبة 25%', type: 'health', category: 'Elixir', effect: 25, price: 100, quantity: 0, icon: '❤️' },
+  { id: 'HP_potion', name: 'زجاجة الدم', description: 'تزيد الدم بنسبة 25%', type: 'health', category: 'Elixir', effect: 25, price: 100, quantity: 0, icon: '❤️' },
   { id: 'xp_book', name: 'كتاب الخبرة', description: 'يزيد خبرة اللاعب 500 XP', type: 'xp', category: 'Element', effect: 500, price: 250, quantity: 0, icon: '📚' },
-  { id: 'energy_drink', name: 'مشروب الطاقة', description: 'يستعيد 50% من الطاقة', type: 'energy', category: 'Elixir', effect: 50, price: 150, quantity: 0, icon: '⚡' },
+  { id: 'MP_drink', name: 'مشروب الطاقة', description: 'يستعيد 50% من الطاقة', type: 'energy', category: 'Elixir', effect: 50, price: 150, quantity: 0, icon: '⚡' },
   { id: 'xp_reset', name: 'حجر إعادة التوزيع', description: 'يعيد جميع نقاط XP ويسمح لك بإعادة توزيعها', type: 'reset', category: 'Special', effect: 0, price: 5000, quantity: 0, icon: '🔄' },
   { id: 'rename_stone', name: 'حجر إعادة التسمية', description: 'يسمح لك بتغيير اسم شخصيتك', type: 'tool', category: 'Special', effect: 0, price: 2000, quantity: 1, icon: '✏️' },
   { id: 'gate_exit_stone', name: 'حجر الخروج من البوابة', description: 'يسمح بالخروج الآمن من البوابة دون عقوبة', type: 'key', category: 'Special', effect: 0, price: 3000, quantity: 1, icon: '🚪' },
@@ -214,12 +214,6 @@ const getInitialPrayerQuests = (): PrayerQuest[] => [
   { id: 'asr', name: 'Asr', arabicName: 'صلاة العصر', time: '15:30', completed: false, xpReward: 40 },
   { id: 'maghrib', name: 'Maghrib', arabicName: 'صلاة المغرب', time: '18:00', completed: false, xpReward: 40 },
   { id: 'isha', name: 'Isha', arabicName: 'صلاة العشاء', time: '19:30', completed: false, xpReward: 45 },
-];
-
-const getInitialShadowSoldiers = (): ShadowSoldier[] => [
-  { id: 'deris', name: 'Deris', arabicName: 'ديريس', type: 'mind', level: 1, power: 50, unlocked: false, cost: 10 },
-  { id: 'balfo', name: 'Balfo', arabicName: 'بالفو', type: 'strength', level: 1, power: 60, unlocked: false, cost: 15 },
-  { id: 'qaboos', name: 'Qaboos', arabicName: 'قابوس', type: 'spirit', level: 1, power: 55, unlocked: false, cost: 12 },
 ];
 
 const getDefaultState = (): GameState => ({
