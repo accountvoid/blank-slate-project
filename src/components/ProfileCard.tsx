@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { NewGateNotification } from './NewGateNotification';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { getRankFromLevel } from '@/lib/ranks';
-
+ 
 interface ProfileCardProps {
   gameState: GameState;
   getXpProgress: (xp: number) => number;
