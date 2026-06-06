@@ -325,7 +325,7 @@ const Market = () => {
 
       <BottomNav />
 
-      <style jsx>{`
+      <style>{`
         @keyframes unfoldVertical {
           0% { transform: scaleY(0); }
           100% { transform: scaleY(1); }
