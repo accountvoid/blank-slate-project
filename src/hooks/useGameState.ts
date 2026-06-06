@@ -846,7 +846,14 @@ export const useGameState = () => {
   const dismissLevelUp = useCallback(() => setLevelUpInfo(null), []);
 
   const startSideQuest = useCallback((questId: string) => {
-    setGameState(prev => ({ ...prev, quests: prev.quests.map(q => (q.id === questId && !q.active && !q.completed) ? { ...q, startedAt: new Date().toISOString(), timeProgress: q.timeProgress || 0, active: true, claimed: false } : q) }));
+    setGameState(prev => {
+      // Mana (MP) gating: block any quest start when MP < 10
+      if ((prev.energy ?? 0) < 10) {
+        try { window.dispatchEvent(new CustomEvent('mp-too-low', { detail: { current: prev.energy, required: 10 } })); } catch {}
+        return prev;
+      }
+      return { ...prev, quests: prev.quests.map(q => (q.id === questId && !q.active && !q.completed) ? { ...q, startedAt: new Date().toISOString(), timeProgress: q.timeProgress || 0, active: true, claimed: false } : q) };
+    });
   }, []);
 
   const updateSideQuestProgress = useCallback((questId: string, progress: number) => {
