@@ -75,7 +75,7 @@ const Market = () => {
 
   const canSeeItem = (item) => {
     if (item.isBasic) return true;
-    const playerRankLevel = Math.floor((gameState.level || 1) / 10); 
+    const playerRankLevel = Math.floor((gameState.totalLevel || 1) / 10); 
     return playerRankLevel >= item.rankLevel;
   };
 
