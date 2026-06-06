@@ -407,21 +407,26 @@ export const useGameState = () => {
     const channelName = `game-state-${user.id}-${Date.now()}`;
     const channel = supabase.channel(channelName).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `user_id=eq.${user.id}` }, (payload) => {
           if (payload.new && !isSyncingRef.current) {
-            const newData = payload.new as Record<string, unknown> & {
+            const n = payload.new as Record<string, unknown> & {
               player_name?: string; equipped_title?: string;
               gold?: number; hp?: number; max_hp?: number;
               energy?: number; max_energy?: number; shadow_points?: number;
+              // Canonical profile columns (manual edits in Supabase dashboard)
+              name_player?: string; hp_player?: number; hp_max?: number;
+              mb_player?: number; mp_max?: number; gold_player?: number;
+              level_player?: number; stats_player?: Record<string, number>;
             };
             setGameState(prev => ({
               ...prev,
-              playerName: newData.player_name || prev.playerName,
-              equippedTitle: newData.equipped_title || prev.equippedTitle,
-              gold: newData.gold ?? prev.gold,
-              hp: newData.hp ?? prev.hp,
-              maxHp: newData.max_hp ?? prev.maxHp,
-              energy: newData.energy ?? prev.energy,
-              maxEnergy: newData.max_energy ?? prev.maxEnergy,
-              shadowPoints: newData.shadow_points ?? prev.shadowPoints,
+              playerName: (n.name_player ?? n.player_name) || prev.playerName,
+              equippedTitle: n.equipped_title || prev.equippedTitle,
+              gold: n.gold_player ?? n.gold ?? prev.gold,
+              hp: n.hp_player ?? n.hp ?? prev.hp,
+              maxHp: n.hp_max ?? n.max_hp ?? prev.maxHp,
+              energy: n.mb_player ?? n.energy ?? prev.energy,
+              maxEnergy: n.mp_max ?? n.max_energy ?? prev.maxEnergy,
+              shadowPoints: n.shadow_points ?? prev.shadowPoints,
+              totalLevel: n.level_player ?? prev.totalLevel,
             }));
           }
         }).subscribe();
