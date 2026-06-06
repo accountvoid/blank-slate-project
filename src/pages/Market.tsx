@@ -150,7 +150,7 @@ const Market = () => {
               ) : (
                 <div className="py-2 flex flex-col items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500 w-full">
                   {(() => {
-                    const playerLevel = gameState.level || 1;
+                    const playerLevel = gameState.totalLevel || 1;
                     const requiredLevel = (activeItem?.rankLevel || 0) * 10;
                     const levelDiff = requiredLevel - playerLevel;
 
