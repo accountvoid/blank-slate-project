@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Swords, Zap, Heart, Battery, ArrowLeft, Shield, Wind, Eye, Flame, Star, Trophy, Coins, Sparkles } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -58,13 +58,12 @@ const getBaseDamage = (strengthLevel: number): number => {
   return Math.floor(1000 + Math.pow(strengthLevel - 10, 0.7) * 100);
 };
 
-// Stat-based combat bonuses
-const getAgilityDodge = (agiLevel: number): number => Math.min(0.5, 0.02 * agiLevel); // max 50% dodge
-const getAgilitySpeedBonus = (agiLevel: number): number => Math.min(0.5, 0.01 * agiLevel); // attack speed bonus
-const getIntCounterChance = (intLevel: number): number => Math.min(0.4, 0.015 * intLevel); // counter-attack chance
-const getSpiritHitBonus = (spiLevel: number): number => Math.min(0.3, 0.01 * spiLevel); // hit rate bonus
-const getSpiritDmgBonus = (spiLevel: number): number => 1 + Math.min(0.5, 0.01 * spiLevel); // dmg multiplier
-const getSpiritReveal = (spiLevel: number): boolean => spiLevel >= 5; // reveal boss HP exact
+const getAgilityDodge = (agiLevel: number): number => Math.min(0.5, 0.02 * agiLevel);
+const getAgilitySpeedBonus = (agiLevel: number): number => Math.min(0.5, 0.01 * agiLevel);
+const getIntCounterChance = (intLevel: number): number => Math.min(0.4, 0.015 * intLevel);
+const getSpiritHitBonus = (spiLevel: number): number => Math.min(0.3, 0.01 * spiLevel);
+const getSpiritDmgBonus = (spiLevel: number): number => 1 + Math.min(0.5, 0.01 * spiLevel);
+const getSpiritReveal = (spiLevel: number): boolean => spiLevel >= 5;
 
 const SKILL_LEVEL_MULTIPLIERS = [1, 1.3, 1.6, 2.0, 2.5, 3.0];
 const DARK_VOID_CHARGE_REQUIRED = 15;
@@ -95,9 +94,7 @@ const HunterBattle = () => {
   const skillLevels = getSkillLevels();
   const canUseDarkVoid = playerLevel >= 25;
 
-  // STR → base damage
   const baseDmg = getBaseDamage(strengthLevel);
-  // SPI → damage multiplier
   const spiDmgMult = getSpiritDmgBonus(spiritLevel);
   const basicDmg = Math.floor(baseDmg * spiDmgMult * SKILL_LEVEL_MULTIPLIERS[Math.min((skillLevels.basicAttack || 1) - 1, 5)]);
   const swordDmg = Math.floor(baseDmg * 1.8 * spiDmgMult * SKILL_LEVEL_MULTIPLIERS[Math.min((skillLevels.swordStrike || 1) - 1, 5)]);
@@ -105,14 +102,12 @@ const HunterBattle = () => {
   const daggerDmg = Math.floor(baseDmg * 2 * spiDmgMult * SKILL_LEVEL_MULTIPLIERS[Math.min((skillLevels.daggerStrike || 1) - 1, 5)]);
   const darkVoidDmg = Math.floor(baseDmg * 8 * spiDmgMult * SKILL_LEVEL_MULTIPLIERS[Math.min((skillLevels.darkVoid || 1) - 1, 5)]);
 
-  // AGI → dodge & speed, INT → counter, SPI → hit rate & reveal
   const playerDodgeChance = getAgilityDodge(agilityLevel);
   const counterChance = getIntCounterChance(intLevel);
   const spiHitBonus = getSpiritHitBonus(spiritLevel);
   const canRevealBossHP = getSpiritReveal(spiritLevel);
 
-  // Variable boss HP with ±20% randomness
-  const hpVariance = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+  const hpVariance = useMemo(() => 0.8 + Math.random() * 0.4, []);
   const maxBossHP = Math.max(100, Math.floor(baseDmg * bossConfig.hpMultiplier * hpVariance));
   const [bossHP, setBossHP] = useState(maxBossHP);
   const maxPlayerHP = gameState.maxHp || (2000 + playerLevel * 50);
@@ -126,7 +121,16 @@ const HunterBattle = () => {
   const [isBossAdvancing, setIsBossAdvancing] = useState(false);
   const [comboCount, setComboCount] = useState(0);
   const [damagePopups, setDamagePopups] = useState<DamagePopup[]>([]);
-  const [battleLog, setBattleLog] = useState<string[]>(['⚔️ المعركة بدأت!']);
+  
+  // Optimization: Use ref for log tracking to avoid unneeded re-renders
+  const logRef = useRef<string[]>(['⚔️ المعركة بدأت!']);
+  const [latestLog, setLatestLog] = useState<string>('⚔️ المعركة بدأت!');
+
+  const pushLog = useCallback((msg: string) => {
+    logRef.current = [msg, ...logRef.current.slice(0, 4)];
+    setLatestLog(msg);
+  }, []);
+
   const [screenShake, setScreenShake] = useState(false);
   const [thunderFlash, setThunderFlash] = useState(false);
   const [slashEffect, setSlashEffect] = useState(false);
@@ -145,11 +149,9 @@ const HunterBattle = () => {
   const [dodgedAttack, setDodgedAttack] = useState(false);
 
   const [darkVoidCharge, setDarkVoidCharge] = useState(0);
-  // Boss fury - starts at 0, only activates below 25%
   const [bossFury, setBossFury] = useState(0);
   const [ultimateFuryActive, setUltimateFuryActive] = useState(false);
 
-  // Victory / Loot
   const [showVictory, setShowVictory] = useState(false);
   const [showLoot, setShowLoot] = useState(false);
   const [lootItems, setLootItems] = useState<LootItem[]>([]);
@@ -172,7 +174,6 @@ const HunterBattle = () => {
     setTimeout(() => setDamagePopups(prev => prev.filter(p => p.id !== id)), 1500);
   }, []);
 
-  // Cooldown timer
   useEffect(() => {
     if (battleOver) return;
     const interval = setInterval(() => {
@@ -186,7 +187,6 @@ const HunterBattle = () => {
     return () => clearInterval(interval);
   }, [battleOver, maxPlayerMana]);
 
-  // Boss fury at <25%
   useEffect(() => {
     if (battleOver) return;
     if (bossHPPercent < 25 && bossFury < 100) setBossFury(100);
@@ -196,12 +196,28 @@ const HunterBattle = () => {
     if (bossFury >= 100 && !ultimateFuryActive && !battleOver) {
       setUltimateFuryActive(true);
       setScreenShake(true);
-      setBattleLog(p => ['🔥💀 Ultimate Fury! غضب مطلق!', ...p.slice(0, 4)]);
+      pushLog('🔥💀 Ultimate Fury! غغب مطلق!');
       setTimeout(() => setScreenShake(false), 1000);
     }
-  }, [bossFury, ultimateFuryActive, battleOver]);
+  }, [bossFury, ultimateFuryActive, battleOver, pushLog]);
 
-  // Boss auto-attack with advance + AGI dodge + INT counter
+  const attemptDamage = useCallback((dmg: number, isCrit: boolean, label: string) => {
+    const effectiveDodge = Math.max(0, bossConfig.dodgeChance - spiHitBonus);
+    if (Math.random() < effectiveDodge) {
+      addDamagePopup(0, false, false, true);
+      pushLog(`🛡️ ${bossConfig.name} تفادى!`);
+      return;
+    }
+    setIsBossHit(true);
+    setScreenShake(true);
+    setBossHP(p => Math.max(0, p - dmg));
+    addDamagePopup(dmg, isCrit);
+    setComboCount(p => p + 1);
+    setDarkVoidCharge(p => Math.min(DARK_VOID_CHARGE_REQUIRED, p + 1));
+    pushLog(label);
+    setTimeout(() => { setIsBossHit(false); setScreenShake(false); }, 400);
+  }, [bossConfig, spiHitBonus, addDamagePopup, pushLog]);
+
   useEffect(() => {
     if (battleOver) return;
     const speedReduction = getAgilitySpeedBonus(agilityLevel);
@@ -211,20 +227,18 @@ const HunterBattle = () => {
       setIsBossAdvancing(true);
       setTimeout(() => {
         setIsBossAdvancing(false);
-        // AGI dodge check (passive + raging speed)
         const totalDodge = ragingSpeedActive ? Math.min(0.9, playerDodgeChance + 0.5) : playerDodgeChance;
         if (Math.random() < totalDodge) {
           setDodgedAttack(true);
           addDamagePopup(0, false, true, true);
-          setBattleLog(p => ['💨 تفادي!', ...p.slice(0, 4)]);
+          pushLog('💨 تفادي!');
           setTimeout(() => setDodgedAttack(false), 600);
-          // INT counter-attack chance
           if (Math.random() < counterChance) {
             const counterDmg = Math.floor(basicDmg * 1.5);
             setTimeout(() => {
               attemptDamage(counterDmg, true, `🔄💥 ضربة مضادة → ${counterDmg.toLocaleString()}`);
             }, 300);
-            setBattleLog(p => ['🧠 توقع الهجوم! ضربة مضادة!', ...p.slice(0, 4)]);
+            pushLog('🧠 توقع الهجوم! ضربة مضادة!');
           }
           return;
         }
@@ -234,32 +248,13 @@ const HunterBattle = () => {
         setPlayerHP(p => Math.max(0, p - bossDmg));
         addDamagePopup(bossDmg, ultimateFuryActive, true);
         setScreenShake(true);
-        setBattleLog(p => [`${ultimateFuryActive ? '🔥' : '🕷️'} ${bossConfig.name} → ${bossDmg}`, ...p.slice(0, 4)]);
+        pushLog(`${ultimateFuryActive ? '🔥' : '🕷️'} ${bossConfig.name} → ${bossDmg}`);
         setTimeout(() => { setIsPlayerHit(false); setScreenShake(false); }, 400);
       }, 600);
     }, adjustedSpeed);
     return () => clearInterval(interval);
-  }, [battleOver, bossHP, playerHP, ragingSpeedActive, ultimateFuryActive, bossConfig, addDamagePopup, playerDodgeChance, counterChance, agilityLevel, basicDmg]);
+  }, [battleOver, bossHP, playerHP, ragingSpeedActive, ultimateFuryActive, bossConfig, addDamagePopup, playerDodgeChance, counterChance, agilityLevel, basicDmg, attemptDamage, pushLog]);
 
-  const attemptDamage = (dmg: number, isCrit: boolean, label: string) => {
-    // SPI increases hit rate, reducing boss dodge
-    const effectiveDodge = Math.max(0, bossConfig.dodgeChance - spiHitBonus);
-    if (Math.random() < effectiveDodge) {
-      addDamagePopup(0, false, false, true);
-      setBattleLog(p => [`🛡️ ${bossConfig.name} تفادى!`, ...p.slice(0, 4)]);
-      return;
-    }
-    setIsBossHit(true);
-    setScreenShake(true);
-    setBossHP(p => Math.max(0, p - dmg));
-    addDamagePopup(dmg, isCrit);
-    setComboCount(p => p + 1);
-    setDarkVoidCharge(p => Math.min(DARK_VOID_CHARGE_REQUIRED, p + 1));
-    setBattleLog(p => [label, ...p.slice(0, 4)]);
-    setTimeout(() => { setIsBossHit(false); setScreenShake(false); }, 400);
-  };
-
-  // Basic Attack - NO cooldown
   const basicAttack = useCallback(() => {
     if (isAttacking || battleOver || playerMana < 5) return;
     setIsAttacking(true);
@@ -272,9 +267,8 @@ const HunterBattle = () => {
       setTimeout(() => setSlashEffect(false), 400);
     }, 200);
     setTimeout(() => setIsAttacking(false), 400);
-  }, [isAttacking, battleOver, playerMana, basicDmg]);
+  }, [isAttacking, battleOver, playerMana, basicDmg, attemptDamage]);
 
-  // Sword Strike
   const swordStrike = useCallback(() => {
     if (isAttacking || battleOver || swordCooldown > 0 || playerMana < 15) return;
     setIsAttacking(true);
@@ -289,9 +283,8 @@ const HunterBattle = () => {
     }, 300);
     setSwordCooldown(4);
     setTimeout(() => setIsAttacking(false), 700);
-  }, [isAttacking, battleOver, swordCooldown, playerMana, swordDmg]);
+  }, [isAttacking, battleOver, swordCooldown, playerMana, swordDmg, attemptDamage]);
 
-  // Thunder Dash
   const thunderDash = useCallback(() => {
     if (isAttacking || battleOver || thunderCooldown > 0 || playerMana < 50) return;
     setIsAttacking(true);
@@ -307,9 +300,8 @@ const HunterBattle = () => {
     }, 400);
     setThunderCooldown(8);
     setTimeout(() => setIsAttacking(false), 900);
-  }, [isAttacking, battleOver, thunderCooldown, playerMana, thunderDmg]);
+  }, [isAttacking, battleOver, thunderCooldown, playerMana, thunderDmg, attemptDamage]);
 
-  // Dagger Strike
   const daggerStrikeAction = useCallback(() => {
     if (!hasDagger || isAttacking || battleOver || daggerCooldown > 0 || playerMana < 25) return;
     setIsAttacking(true);
@@ -324,9 +316,8 @@ const HunterBattle = () => {
     }, 300);
     setDaggerCooldown(5);
     setTimeout(() => setIsAttacking(false), 700);
-  }, [hasDagger, isAttacking, battleOver, daggerCooldown, playerMana, daggerDmg]);
+  }, [hasDagger, isAttacking, battleOver, daggerCooldown, playerMana, daggerDmg, attemptDamage]);
 
-  // Dark Void
   const darkVoidStrike = useCallback(() => {
     if (!canUseDarkVoid || isAttacking || battleOver || darkVoidCharge < DARK_VOID_CHARGE_REQUIRED) return;
     setIsAttacking(true);
@@ -340,21 +331,19 @@ const HunterBattle = () => {
       setTimeout(() => { setDarkVoidEffect(false); setScreenShake(false); }, 800);
     }, 500);
     setTimeout(() => setIsAttacking(false), 1200);
-  }, [canUseDarkVoid, isAttacking, battleOver, darkVoidCharge, darkVoidDmg]);
+  }, [canUseDarkVoid, isAttacking, battleOver, darkVoidCharge, darkVoidDmg, attemptDamage]);
 
-  // Raging Speed
   const activateRagingSpeed = useCallback(() => {
     if (battleOver || ragingSpeedCooldown > 0 || ragingSpeedActive || playerMana < 75) return;
     setPlayerMana(p => p - 75);
     setRagingSpeedActive(true);
     setRagingSpeedTimer(8);
     setRagingSpeedCooldown(20);
-    setBattleLog(p => ['💨 Raging Speed! تفادي 80-85%!', ...p.slice(0, 4)]);
-  }, [battleOver, ragingSpeedCooldown, ragingSpeedActive, playerMana]);
+    pushLog('💨 Raging Speed! تفادي 80-85%!');
+  }, [battleOver, ragingSpeedCooldown, ragingSpeedActive, playerMana, pushLog]);
 
   useEffect(() => { const t = setTimeout(() => setComboCount(0), 5000); return () => clearTimeout(t); }, [comboCount]);
 
-  // Victory handler
   useEffect(() => {
     if (isBossDead && !showVictory) {
       setTimeout(() => {
@@ -376,13 +365,27 @@ const HunterBattle = () => {
     setRagingSpeedCooldown(0); setRagingSpeedActive(false); setRagingSpeedTimer(0);
     setBossFury(0); setUltimateFuryActive(false); setDarkVoidCharge(0);
     setShowVictory(false); setShowLoot(false); setShowLevelUp(false);
-    setBattleLog(['⚔️ المعركة بدأت!']);
+    logRef.current = ['⚔️ المعركة بدأت!'];
+    setLatestLog('⚔️ المعركة بدأت!');
     setDamagePopups([]);
   };
 
+  // Cache particles configuration to prevent recreating on every re-render
+  const particles = useMemo(() => {
+    return [...Array(20)].map((_, i) => ({
+      id: i,
+      duration: 3 + Math.random() * 3,
+      delay: Math.random() * 3,
+      width: `${1 + Math.random() * 2}px`,
+      height: `${1 + Math.random() * 2}px`,
+      background: i % 3 === 0 ? 'rgba(6,182,212,0.5)' : i % 3 === 1 ? 'rgba(168,85,247,0.4)' : `${bossConfig.color}55`,
+      left: `${5 + Math.random() * 90}%`,
+      top: `${10 + Math.random() * 80}%`,
+    }));
+  }, [bossConfig.color]);
+
   return (
     <div className={`h-screen bg-black text-white flex flex-col overflow-hidden relative select-none ${screenShake ? 'animate-screen-shake' : ''}`} dir="ltr">
-      {/* Flash effects */}
       {thunderFlash && <div className="absolute inset-0 z-50 bg-yellow-200/40 pointer-events-none" style={{ animation: 'flash 0.1s ease-out 3' }} />}
       {ultimateFuryActive && (
         <motion.div className="absolute inset-0 z-40 pointer-events-none"
@@ -393,7 +396,6 @@ const HunterBattle = () => {
       )}
       {dodgedAttack && <div className="absolute inset-0 z-40 pointer-events-none bg-cyan-400/10" style={{ animation: 'flash 0.15s ease-out 2' }} />}
 
-      {/* Dark Void full screen effect */}
       <AnimatePresence>
         {darkVoidEffect && (
           <motion.div className="absolute inset-0 z-45 pointer-events-none"
@@ -413,14 +415,11 @@ const HunterBattle = () => {
         )}
       </AnimatePresence>
 
-      {/* ====== BATTLE ARENA ====== */}
       <div className="relative flex-1 min-h-0 flex flex-col">
-        {/* Background */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(10,20,50,1) 0%, rgba(3,3,12,1) 60%, #000 100%)' }} />
         <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 20% 80%, rgba(6,182,212,0.05) 0%, transparent 50%)' }} />
         <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 80% 70%, rgba(239,68,68,0.04) 0%, transparent 50%)' }} />
 
-        {/* Animated grid floor */}
         <div className="absolute bottom-0 left-0 right-0 h-[35%] overflow-hidden">
           <div className="absolute inset-0"
             style={{
@@ -436,27 +435,24 @@ const HunterBattle = () => {
           />
         </div>
 
-        {/* Particles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <motion.div key={i} className="absolute rounded-full"
+          {particles.map((p) => (
+            <motion.div key={p.id} className="absolute rounded-full"
               animate={{ y: [0, -20, 0], opacity: [0.2, 0.7, 0.2] }}
-              transition={{ duration: 3 + Math.random() * 3, repeat: Infinity, delay: Math.random() * 3 }}
+              transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
               style={{
-                width: `${1 + Math.random() * 2}px`, height: `${1 + Math.random() * 2}px`,
-                background: i % 3 === 0 ? 'rgba(6,182,212,0.5)' : i % 3 === 1 ? 'rgba(168,85,247,0.4)' : `${bossConfig.color}55`,
-                left: `${5 + Math.random() * 90}%`, top: `${10 + Math.random() * 80}%`,
+                width: p.width, height: p.height,
+                background: p.background,
+                left: p.left, top: p.top,
               }}
             />
           ))}
         </div>
 
-        {/* Back button */}
         <button onClick={() => navigate(-1)} className="absolute top-3 left-3 z-30 bg-black/70 border border-white/10 p-2 rounded-xl hover:bg-white/10 transition-all active:scale-90">
           <ArrowLeft size={16} className="text-white/70" />
         </button>
 
-        {/* Boss Rank */}
         <motion.div className="absolute top-3 left-1/2 -translate-x-1/2 z-20"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -467,7 +463,6 @@ const HunterBattle = () => {
           </div>
         </motion.div>
 
-        {/* Fury bar */}
         {bossHPPercent < 50 && (
           <motion.div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-44"
             initial={{ opacity: 0 }}
@@ -499,7 +494,6 @@ const HunterBattle = () => {
           </motion.div>
         )}
 
-        {/* Dark Void Charge */}
         {canUseDarkVoid && (
           <div className="absolute top-3 right-3 z-20">
             <div className="bg-black/80 border border-purple-500/30 px-2.5 py-2 backdrop-blur-md rounded-xl">
@@ -523,7 +517,6 @@ const HunterBattle = () => {
           </div>
         )}
 
-        {/* Combo */}
         <AnimatePresence>
           {comboCount > 1 && (
             <motion.div className="absolute top-20 left-1/2 -translate-x-1/2 z-20"
@@ -542,7 +535,6 @@ const HunterBattle = () => {
           )}
         </AnimatePresence>
 
-        {/* Raging Speed */}
         {ragingSpeedActive && (
           <motion.div className="absolute bottom-[38%] left-1/2 -translate-x-1/2 z-20"
             initial={{ scale: 0, opacity: 0 }}
@@ -557,9 +549,7 @@ const HunterBattle = () => {
           </motion.div>
         )}
 
-        {/* ===== BOSS CENTER ===== */}
         <div className="absolute top-[15%] left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
-          {/* Boss HP Bar */}
           <div className="mb-3 w-[200px]">
             <div className="bg-black/80 border backdrop-blur-md rounded-xl p-2.5" style={{ borderColor: `${bossConfig.color}40` }}>
               <div className="flex justify-between items-center mb-1.5">
@@ -570,7 +560,7 @@ const HunterBattle = () => {
                 <motion.div className="h-full relative overflow-hidden rounded-full"
                   animate={{ width: `${bossHPPercent}%` }}
                   transition={{ duration: 0.5 }}
-                  style={{ background: `linear-gradient(90deg, ${bossConfig.color}99, ${bossConfig.color})` }}
+                  style={{ background: `linear-gradient(90deg, ${bossConfig}99, ${bossConfig.color})` }}
                 >
                   <motion.div className="absolute inset-0"
                     animate={{ x: ['-100%', '100%'] }}
@@ -586,7 +576,6 @@ const HunterBattle = () => {
             </div>
           </div>
 
-          {/* Boss Image */}
           <motion.div
             className="relative"
             animate={{
@@ -614,12 +603,10 @@ const HunterBattle = () => {
             <img src={bossConfig.image} alt="Boss" className="w-36 h-36 object-contain relative z-10"
               style={{ filter: `drop-shadow(0 0 40px ${bossConfig.color}80)` }}
             />
-            {/* Platform glow */}
             <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[140%] h-8">
               <div className="w-full h-full rounded-[50%] blur-xl" style={{ backgroundColor: `${bossConfig.color}30` }} />
             </div>
 
-            {/* Damage popups on boss */}
             {damagePopups.filter(p => !p.isPlayer).map(popup => (
               <motion.div key={popup.id} className="absolute z-30 pointer-events-none"
                 initial={{ opacity: 1, y: 0, scale: 1 }}
@@ -650,7 +637,6 @@ const HunterBattle = () => {
           </motion.div>
         </div>
 
-        {/* ===== PLAYER (Bottom Left) ===== */}
         <div className="absolute left-2 bottom-[8%] z-10 flex flex-col items-center">
           <motion.div
             className="relative"
@@ -666,7 +652,6 @@ const HunterBattle = () => {
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[130%] h-5">
               <div className="w-full h-full bg-cyan-500/20 rounded-[50%] blur-lg" />
             </div>
-            {/* Player damage popups */}
             {damagePopups.filter(p => p.isPlayer).map(popup => (
               <motion.div key={popup.id} className="absolute z-30 pointer-events-none"
                 initial={{ opacity: 1, y: 0 }}
@@ -686,7 +671,6 @@ const HunterBattle = () => {
           </motion.div>
         </div>
 
-        {/* Player Stats overlay */}
         <div className="absolute left-2 bottom-[25%] z-20">
           <div className="bg-black/80 border border-cyan-500/20 p-2 backdrop-blur-md rounded-xl w-[120px]">
             <div className="flex justify-between items-center mb-1">
@@ -716,7 +700,6 @@ const HunterBattle = () => {
           </div>
         </div>
 
-        {/* Slash effects */}
         <AnimatePresence>
           {slashEffect && (
             <motion.div className="absolute inset-0 z-25 pointer-events-none flex items-center justify-center"
@@ -777,24 +760,20 @@ const HunterBattle = () => {
           )}
         </AnimatePresence>
 
-        {/* Floor line */}
         <div className="absolute bottom-0 left-0 right-0 h-[12%]">
           <div className="w-full h-full bg-gradient-to-t from-cyan-950/15 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
         </div>
       </div>
 
-      {/* ====== CONTROLS ====== */}
       <div className="relative z-20 bg-gradient-to-b from-[#080818] to-[#050510] border-t border-cyan-500/10">
-        {/* Battle Log */}
         <div className="px-3 py-1 border-b border-white/5 bg-black/50">
           <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             <span className="text-[6px] text-cyan-500/40 font-bold uppercase shrink-0 tracking-[0.2em]">LOG</span>
-            <span className="text-[8px] text-zinc-400 whitespace-nowrap">{battleLog[0]}</span>
+            <span className="text-[8px] text-zinc-400 whitespace-nowrap">{latestLog}</span>
           </div>
         </div>
 
-        {/* ATTACKS */}
         <div className="px-2 pt-2 pb-1">
           <div className="flex items-center gap-1 mb-1">
             <Swords size={8} className="text-zinc-600" />
@@ -818,7 +797,6 @@ const HunterBattle = () => {
           </div>
         </div>
 
-        {/* ABILITIES */}
         <div className="px-2 pb-2 pt-1">
           <div className="flex items-center gap-1 mb-1">
             <Zap size={8} className="text-zinc-600" />
@@ -880,7 +858,6 @@ const HunterBattle = () => {
         </div>
       </div>
 
-      {/* ====== VICTORY OVERLAY ====== */}
       <AnimatePresence>
         {showVictory && (
           <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
@@ -905,7 +882,6 @@ const HunterBattle = () => {
                 {bossConfig.name} [{bossConfig.rank}]
               </div>
 
-              {/* XP gained */}
               <motion.div className="flex items-center justify-center gap-2"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -929,7 +905,6 @@ const HunterBattle = () => {
         )}
       </AnimatePresence>
 
-      {/* ====== LOOT POPUP (System Message Style) ====== */}
       <AnimatePresence>
         {showLoot && (
           <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md"
@@ -940,7 +915,6 @@ const HunterBattle = () => {
               animate={{ scale: 1, y: 0 }}
               transition={{ type: 'spring', damping: 14 }}
             >
-              {/* System message header */}
               <div className="bg-gradient-to-b from-cyan-950/90 to-[#0a0a1a] border border-cyan-500/30 rounded-2xl overflow-hidden" style={{ boxShadow: '0 0 50px rgba(6,182,212,0.2)' }}>
                 <div className="px-4 py-3 border-b border-cyan-500/20 flex items-center gap-2">
                   <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}>
@@ -993,7 +967,6 @@ const HunterBattle = () => {
         )}
       </AnimatePresence>
 
-      {/* ====== DEFEAT ====== */}
       <AnimatePresence>
         {isPlayerDead && !isBossDead && (
           <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md"
@@ -1027,7 +1000,6 @@ const HunterBattle = () => {
   );
 };
 
-// Skill Button Component
 interface SkillBtnProps {
   onClick: () => void;
   disabled: boolean;
