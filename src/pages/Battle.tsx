@@ -122,7 +122,6 @@ const HunterBattle = () => {
   const [comboCount, setComboCount] = useState(0);
   const [damagePopups, setDamagePopups] = useState<DamagePopup[]>([]);
   
-  // Optimization: Use ref for log tracking to avoid unneeded re-renders
   const logRef = useRef<string[]>(['⚔️ المعركة بدأت!']);
   const [latestLog, setLatestLog] = useState<string>('⚔️ المعركة بدأت!');
 
@@ -370,7 +369,6 @@ const HunterBattle = () => {
     setDamagePopups([]);
   };
 
-  // Cache particles configuration to prevent recreating on every re-render
   const particles = useMemo(() => {
     return [...Array(20)].map((_, i) => ({
       id: i,
@@ -385,7 +383,7 @@ const HunterBattle = () => {
   }, [bossConfig.color]);
 
   return (
-    <div className={`h-screen bg-black text-white flex flex-col overflow-hidden relative select-none ${screenShake ? 'animate-screen-shake' : ''}`} dir="ltr">
+    <div className={`h-screen bg-[#080710] text-white flex flex-col overflow-hidden relative select-none font-sans ${screenShake ? 'animate-screen-shake' : ''}`} dir="rtl">
       {thunderFlash && <div className="absolute inset-0 z-50 bg-yellow-200/40 pointer-events-none" style={{ animation: 'flash 0.1s ease-out 3' }} />}
       {ultimateFuryActive && (
         <motion.div className="absolute inset-0 z-40 pointer-events-none"
@@ -415,491 +413,253 @@ const HunterBattle = () => {
         )}
       </AnimatePresence>
 
-      <div className="relative flex-1 min-h-0 flex flex-col">
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(10,20,50,1) 0%, rgba(3,3,12,1) 60%, #000 100%)' }} />
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 20% 80%, rgba(6,182,212,0.05) 0%, transparent 50%)' }} />
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 80% 70%, rgba(239,68,68,0.04) 0%, transparent 50%)' }} />
+      {/* شاشة المعركة العلوية (مقسمة لجزئين متقابلين بناءً على الصورة المرفقة) */}
+      <div className="relative flex-1 min-h-0 flex flex-col justify-between p-4 pb-2">
+        
+        {/* زر العودة والرانك وعداد الكومبو */}
+        <div className="absolute top-4 left-4 right-4 z-30 flex justify-between items-center pointer-events-none">
+          <button onClick={() => navigate(-1)} className="pointer-events-auto bg-black/40 border border-white/10 p-2 rounded-xl hover:bg-white/10 transition-all active:scale-90">
+            <ArrowLeft size={18} className="text-white/70" />
+          </button>
+          
+          <div className="px-5 py-1 text-xs font-black tracking-widest rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.15)]">
+            RANK {bossConfig.rank}
+          </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-[35%] overflow-hidden">
-          <div className="absolute inset-0"
-            style={{
-              backgroundImage: 'linear-gradient(rgba(6,182,212,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.06) 1px, transparent 1px)',
-              backgroundSize: '40px 40px',
-              transform: 'perspective(500px) rotateX(65deg)',
-              transformOrigin: 'bottom',
-            }}
-          />
-          <motion.div className="absolute inset-0 bg-gradient-to-t from-cyan-950/15 to-transparent"
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          />
+          <AnimatePresence>
+            {comboCount > 1 && (
+              <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }}>
+                <motion.div className="text-orange-400 font-black italic text-lg" animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 0.3, repeat: Infinity }}>
+                  {comboCount}x COMBO
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* المؤثرات البصرية وتدفق الخلفية */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           {particles.map((p) => (
             <motion.div key={p.id} className="absolute rounded-full"
               animate={{ y: [0, -20, 0], opacity: [0.2, 0.7, 0.2] }}
               transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
-              style={{
-                width: p.width, height: p.height,
-                background: p.background,
-                left: p.left, top: p.top,
-              }}
+              style={{ width: p.width, height: p.height, background: p.background, left: p.left, top: p.top }}
             />
           ))}
         </div>
 
-        <button onClick={() => navigate(-1)} className="absolute top-3 left-3 z-30 bg-black/70 border border-white/10 p-2 rounded-xl hover:bg-white/10 transition-all active:scale-90">
-          <ArrowLeft size={16} className="text-white/70" />
-        </button>
-
-        <motion.div className="absolute top-3 left-1/2 -translate-x-1/2 z-20"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-        >
-          <div className="px-6 py-1.5 text-[10px] font-black tracking-[0.5em] uppercase backdrop-blur-md rounded-lg border"
-            style={{ borderColor: `${bossConfig.color}40`, backgroundColor: `${bossConfig.color}15`, color: bossConfig.color, boxShadow: `0 0 20px ${bossConfig.color}20` }}>
-            RANK {bossConfig.rank}
-          </div>
-        </motion.div>
-
-        {bossHPPercent < 50 && (
-          <motion.div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-44"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="text-[7px] text-red-400 font-bold tracking-[0.2em]">ULTIMATE FURY</span>
-              <span className="text-[7px] text-red-300 ml-auto">{Math.floor(bossFury)}%</span>
-            </div>
-            <div className="h-2 bg-zinc-900 border border-red-500/20 rounded-full overflow-hidden">
-              <motion.div className="h-full rounded-full"
-                animate={bossFury >= 100 ? { opacity: [0.7, 1, 0.7] } : {}}
-                transition={{ duration: 0.5, repeat: Infinity }}
-                style={{
-                  width: `${bossFury}%`,
-                  background: bossFury >= 100 ? 'linear-gradient(90deg, #dc2626, #ff0000, #dc2626)' : 'linear-gradient(90deg, #991b1b, #dc2626)',
-                  boxShadow: bossFury >= 100 ? '0 0 20px rgba(239,68,68,0.8)' : 'none',
-                }}
-              />
-            </div>
-            {ultimateFuryActive && (
-              <motion.div className="text-center mt-1"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              >
-                <span className="text-[8px] font-black text-red-500 tracking-[0.3em]">⚠️ RAGE MODE ⚠️</span>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-
-        {canUseDarkVoid && (
-          <div className="absolute top-3 right-3 z-20">
-            <div className="bg-black/80 border border-purple-500/30 px-2.5 py-2 backdrop-blur-md rounded-xl">
-              <div className="flex items-center gap-1 text-[7px]">
-                <Eye size={8} className="text-purple-400" />
-                <span className="text-purple-300 font-bold tracking-wider">VOID</span>
+        {/* قسم البوس (العدو) - الجهة العلوية اليمنى بالكامل */}
+        <div className="flex justify-between items-start gap-4 mt-12 z-10 relative">
+          
+          {/* كرت ومعلومات اللاعب الأساسية - جهة اليسار */}
+          <div className="flex-1 max-w-[48%] bg-black/30 border border-white/5 rounded-2xl p-3 backdrop-blur-md">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-400/20 overflow-hidden shrink-0 flex items-center justify-center">
+                <img src="/UserPersonality.png" alt="Player" className="w-full h-full object-cover" />
               </div>
-              <div className="w-16 h-1.5 bg-zinc-900 rounded-full overflow-hidden mt-1">
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-black text-white truncate text-left">{playerName}</div>
+                <div className="text-[10px] font-bold text-cyan-400 text-left">مستوى {playerLevel}</div>
+              </div>
+            </div>
+
+            {/* شريط الحياة للاعب */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[9px] text-zinc-400 font-mono">
+                <span className="font-bold text-emerald-400">HP</span>
+                <span>{playerHP} / {maxPlayerHP}</span>
+              </div>
+              <div className="h-2 bg-zinc-950 rounded-full border border-white/5 overflow-hidden">
                 <motion.div className="h-full rounded-full"
-                  animate={isDarkVoidReady ? { opacity: [0.6, 1, 0.6] } : {}}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                  style={{
-                    width: `${(darkVoidCharge / DARK_VOID_CHARGE_REQUIRED) * 100}%`,
-                    background: isDarkVoidReady ? 'linear-gradient(90deg, #7c3aed, #a855f7)' : 'linear-gradient(90deg, #4c1d95, #6d28d9)',
-                    boxShadow: isDarkVoidReady ? '0 0 12px rgba(139,92,246,0.8)' : 'none',
-                  }}
-                />
-              </div>
-              <span className="text-[6px] text-purple-400/60">{darkVoidCharge}/{DARK_VOID_CHARGE_REQUIRED}</span>
-            </div>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {comboCount > 1 && (
-            <motion.div className="absolute top-20 left-1/2 -translate-x-1/2 z-20"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
-            >
-              <motion.div className="text-orange-400 font-black italic text-2xl"
-                animate={{ scale: [1, 1.15, 1] }}
-                transition={{ duration: 0.3, repeat: Infinity }}
-                style={{ textShadow: '0 0 20px rgba(251,146,60,0.9)' }}
-              >
-                {comboCount}x COMBO!
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {ragingSpeedActive && (
-          <motion.div className="absolute bottom-[38%] left-1/2 -translate-x-1/2 z-20"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            <div className="bg-cyan-500/15 border border-cyan-400/30 px-4 py-1.5 rounded-full backdrop-blur-sm">
-              <motion.span className="text-[10px] text-cyan-300 font-bold"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              >💨 Raging Speed {ragingSpeedTimer}s</motion.span>
-            </div>
-          </motion.div>
-        )}
-
-        <div className="absolute top-[15%] left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
-          <div className="mb-3 w-[200px]">
-            <div className="bg-black/80 border backdrop-blur-md rounded-xl p-2.5" style={{ borderColor: `${bossConfig.color}40` }}>
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[9px] font-black tracking-[0.15em]" style={{ color: bossConfig.color }}>{bossConfig.name}</span>
-                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded" style={{ color: bossConfig.color, backgroundColor: `${bossConfig.color}15` }}>[{bossConfig.rank}]</span>
-              </div>
-              <div className="h-3 bg-zinc-900 border border-white/5 overflow-hidden rounded-full relative">
-                <motion.div className="h-full relative overflow-hidden rounded-full"
-                  animate={{ width: `${bossHPPercent}%` }}
-                  transition={{ duration: 0.5 }}
-                  style={{ background: `linear-gradient(90deg, ${bossConfig}99, ${bossConfig.color})` }}
-                >
-                  <motion.div className="absolute inset-0"
-                    animate={{ x: ['-100%', '100%'] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                    style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)' }}
-                  />
-                </motion.div>
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-[7px] text-zinc-500">{bossHP.toLocaleString()}</span>
-                <span className="text-[7px] text-zinc-500">{maxBossHP.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          <motion.div
-            className="relative"
-            animate={{
-              scale: isBossHit ? 0.85 : isBossAdvancing ? 1.15 : isBossDead ? 0.7 : 1,
-              x: isBossAdvancing ? -15 : 0,
-              rotate: isBossDead ? 15 : 0,
-              filter: isBossHit ? 'brightness(3)' : isBossDead ? 'grayscale(1)' : 'brightness(1)',
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            {!isBossDead && (
-              <motion.div className="absolute -inset-12 rounded-full blur-3xl"
-                animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 1.1, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                style={{ backgroundColor: `${bossConfig.color}30` }}
-              />
-            )}
-            {ultimateFuryActive && (
-              <motion.div className="absolute -inset-8 rounded-full blur-2xl"
-                animate={{ opacity: [0.3, 0.8, 0.3] }}
-                transition={{ duration: 0.6, repeat: Infinity }}
-                style={{ backgroundColor: 'rgba(239,68,68,0.4)' }}
-              />
-            )}
-            <img src={bossConfig.image} alt="Boss" className="w-36 h-36 object-contain relative z-10"
-              style={{ filter: `drop-shadow(0 0 40px ${bossConfig.color}80)` }}
-            />
-            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[140%] h-8">
-              <div className="w-full h-full rounded-[50%] blur-xl" style={{ backgroundColor: `${bossConfig.color}30` }} />
-            </div>
-
-            {damagePopups.filter(p => !p.isPlayer).map(popup => (
-              <motion.div key={popup.id} className="absolute z-30 pointer-events-none"
-                initial={{ opacity: 1, y: 0, scale: 1 }}
-                animate={{ opacity: 0, y: -70, scale: popup.isCrit ? 1.5 : 0.8 }}
-                transition={{ duration: 1.5, ease: 'easeOut' }}
-                style={{ left: `${popup.x}%`, top: `${popup.y}%` }}
-              >
-                {popup.isDodge ? (
-                  <div className="font-black italic text-zinc-400 text-lg" style={{ textShadow: '0 0 12px rgba(150,150,150,0.6)' }}>MISS!</div>
-                ) : (
-                  <div className={`font-black italic ${popup.isCrit ? 'text-yellow-300 text-3xl' : 'text-white text-xl'}`}
-                    style={{ textShadow: popup.isCrit ? '0 0 30px rgba(250,204,21,0.9)' : '0 0 15px rgba(255,255,255,0.7)' }}>
-                    -{popup.value.toLocaleString()}
-                    {popup.isCrit && <span className="text-sm ml-1 text-yellow-200">CRIT!</span>}
-                  </div>
-                )}
-              </motion.div>
-            ))}
-
-            {isBossDead && (
-              <motion.div className="absolute inset-0 flex items-center justify-center z-30"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-              >
-                <div className="font-black italic text-2xl tracking-[0.4em]" style={{ color: bossConfig.color, textShadow: `0 0 30px ${bossConfig.color}` }}>DEFEATED</div>
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-
-        <div className="absolute left-2 bottom-[8%] z-10 flex flex-col items-center">
-          <motion.div
-            className="relative"
-            animate={{
-              x: isAttacking ? 15 : isPlayerHit ? -8 : 0,
-              scale: isAttacking ? 1.1 : 1,
-              filter: isPlayerHit ? 'brightness(2)' : 'brightness(1)',
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="absolute -inset-8 bg-cyan-500/10 rounded-full blur-2xl" />
-            <img src="/UserPersonality.png" alt="Player" className="w-20 relative z-10 drop-shadow-[0_0_20px_rgba(6,182,212,0.5)]" style={{ transform: 'scaleX(-1)' }} />
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[130%] h-5">
-              <div className="w-full h-full bg-cyan-500/20 rounded-[50%] blur-lg" />
-            </div>
-            {damagePopups.filter(p => p.isPlayer).map(popup => (
-              <motion.div key={popup.id} className="absolute z-30 pointer-events-none"
-                initial={{ opacity: 1, y: 0 }}
-                animate={{ opacity: 0, y: -60 }}
-                transition={{ duration: 1.5 }}
-                style={{ left: `${popup.x}%`, top: `${popup.y}%` }}
-              >
-                {popup.isDodge ? (
-                  <div className="font-black italic text-cyan-300 text-lg" style={{ textShadow: '0 0 12px rgba(6,182,212,0.8)' }}>DODGE!</div>
-                ) : (
-                  <div className="font-black italic text-red-400 text-lg" style={{ textShadow: '0 0 12px rgba(239,68,68,0.8)' }}>
-                    -{popup.value.toLocaleString()}
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-
-        <div className="absolute left-2 bottom-[25%] z-20">
-          <div className="bg-black/80 border border-cyan-500/20 p-2 backdrop-blur-md rounded-xl w-[120px]">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[7px] font-black text-cyan-400 tracking-wider truncate max-w-[65px]">{playerName}</span>
-              <span className="text-[7px] font-bold text-cyan-300/70">LV.{playerLevel}</span>
-            </div>
-            <div className="flex items-center gap-1 mb-1">
-              <Heart size={7} className="text-emerald-400 shrink-0" />
-              <div className="flex-1 h-2 bg-zinc-900 border border-white/5 overflow-hidden rounded-sm">
-                <motion.div className="h-full rounded-sm"
                   animate={{ width: `${playerHPPercent}%` }}
                   style={{ background: playerHPPercent > 50 ? 'linear-gradient(90deg, #10b981, #34d399)' : playerHPPercent > 20 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #ef4444, #f87171)' }}
                 />
               </div>
-              <span className="text-[5px] text-zinc-500 w-6 text-right">{playerHP}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Battery size={7} className="text-blue-400 shrink-0" />
-              <div className="flex-1 h-1.5 bg-zinc-900 border border-white/5 overflow-hidden rounded-sm">
-                <motion.div className="h-full rounded-sm"
+
+            {/* شريط المانا للاعب */}
+            <div className="space-y-1 mt-2">
+              <div className="flex justify-between items-center text-[9px] text-zinc-400 font-mono">
+                <span className="font-bold text-blue-400">MP</span>
+                <span>{playerMana} / {maxPlayerMana}</span>
+              </div>
+              <div className="h-1.5 bg-zinc-950 rounded-full border border-white/5 overflow-hidden">
+                <motion.div className="h-full rounded-full"
                   animate={{ width: `${playerManaPercent}%` }}
                   style={{ background: 'linear-gradient(90deg, #3b82f6, #60a5fa)' }}
                 />
               </div>
-              <span className="text-[5px] text-zinc-500 w-6 text-right">{playerMana}</span>
+            </div>
+          </div>
+
+          {/* كرت ومعلومات البوس - جهة اليمين المتناسقة تماماً */}
+          <div className="flex-1 max-w-[48%] bg-black/30 border border-white/5 rounded-2xl p-3 backdrop-blur-md">
+            <div className="flex items-center gap-2 mb-2 flex-row-reverse">
+              <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-400/20 overflow-hidden shrink-0 flex items-center justify-center">
+                <img src={bossConfig.image} alt="Boss Avatar" className="w-full h-full object-contain" />
+              </div>
+              <div className="min-w-0 flex-1 text-right">
+                <div className="text-xs font-black text-white truncate">{bossConfig.name}</div>
+                <div className="text-[10px] font-bold text-red-400">الرتبة {bossConfig.rank}</div>
+              </div>
+            </div>
+
+            {/* شريط حياة البوس */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-[9px] text-zinc-400 font-mono flex-row-reverse">
+                <span className="font-bold text-red-500">HP</span>
+                <span>{bossHP} / {maxBossHP}</span>
+              </div>
+              <div className="h-2 bg-zinc-950 rounded-full border border-white/5 overflow-hidden">
+                <motion.div className="h-full rounded-full"
+                  animate={{ width: `${bossHPPercent}%` }}
+                  style={{ background: `linear-gradient(90deg, ${bossConfig.color}, #f87171)` }}
+                />
+              </div>
+            </div>
+
+            {/* عداد غضب البوس المدمج */}
+            <div className="space-y-1 mt-2">
+              <div className="flex justify-between items-center text-[9px] text-zinc-400 font-mono flex-row-reverse">
+                <span className="font-bold text-orange-400">RAGE</span>
+                <span>{Math.floor(bossFury)}%</span>
+              </div>
+              <div className="h-1.5 bg-zinc-950 rounded-full border border-white/5 overflow-hidden">
+                <motion.div className="h-full rounded-full"
+                  animate={{ width: `${bossFury}%` }}
+                  style={{ background: 'linear-gradient(90deg, #ea580c, #f97316)' }}
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        <AnimatePresence>
-          {slashEffect && (
-            <motion.div className="absolute inset-0 z-25 pointer-events-none flex items-center justify-center"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <motion.div className="w-[200px] h-[200px] relative"
-                initial={{ scale: 0.3, rotate: -30, opacity: 0 }}
-                animate={{ scale: 1.3, rotate: 15, opacity: [0, 1, 0] }}
-                transition={{ duration: 0.4 }}
-              >
-                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-300 to-transparent transform -rotate-12" />
-                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent transform rotate-12" />
+        {/* ساحة العرض المركزي للمجسمات (البوس واللاعب متواجهين في المنتصف بدقة) */}
+        <div className="flex-1 flex items-center justify-between px-6 relative my-auto min-h-[180px] z-10">
+          
+          {/* مجسم اللاعب يساراً */}
+          <motion.div className="relative"
+            animate={{ x: isAttacking ? 30 : isPlayerHit ? -15 : 0, scale: isAttacking ? 1.1 : 1, filter: isPlayerHit ? 'brightness(2)' : 'brightness(1)' }}
+            transition={{ duration: 0.2 }}
+          >
+            <img src="/UserPersonality.png" alt="Player Character" className="w-24 h-24 object-contain drop-shadow-[0_0_30px_rgba(6,182,212,0.4)]" style={{ transform: 'scaleX(-1)' }} />
+            
+            {damagePopups.filter(p => p.isPlayer).map(popup => (
+              <motion.div key={popup.id} className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 font-black italic text-lg" initial={{ opacity: 1, y: 0 }} animate={{ opacity: 0, y: -40 }} transition={{ duration: 1.2 }}>
+                {popup.isDodge ? <span className="text-cyan-400">DODGE!</span> : <span className="text-red-500">-{popup.value}</span>}
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {swordEffect && (
-            <motion.div className="absolute inset-0 z-25 pointer-events-none flex items-center justify-center"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <motion.div className="w-[220px] h-[220px] relative"
-                initial={{ scale: 0.3, rotate: -20, opacity: 0 }}
-                animate={{ scale: 1.4, rotate: 20, opacity: [0, 1, 0] }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 via-transparent to-transparent rotate-30 blur-sm" />
-                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {daggerEffect && (
-            <motion.div className="absolute inset-0 z-25 pointer-events-none flex items-center justify-center"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <motion.div className="w-[180px] h-[180px] relative"
-                initial={{ scale: 0.3, rotate: -45, opacity: 0 }}
-                animate={{ scale: 1.3, rotate: 0, opacity: [0, 1, 0] }}
-                transition={{ duration: 0.4 }}
-              >
-                <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent transform -rotate-45" />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {thunderBoltEffect && (
-            <motion.div className="absolute inset-0 z-25 pointer-events-none"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <motion.svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 600" fill="none"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: [0, 1, 1, 0] }}
-                transition={{ duration: 0.6 }}
-              >
-                <path d="M200 0 L180 200 L220 200 L160 400 L210 250 L170 250 L200 0" fill="rgba(250,204,21,0.6)" />
-                <path d="M250 20 L235 180 L260 180 L220 350 L255 220 L230 220 L250 20" fill="rgba(250,204,21,0.3)" />
-              </motion.svg>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+          </motion.div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-[12%]">
-          <div className="w-full h-full bg-gradient-to-t from-cyan-950/15 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+          {/* الفاصل الزمني والـ VS في المنتصف */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
+            <span className="text-4xl font-black italic tracking-widest text-zinc-700">VS</span>
+          </div>
+
+          {/* مجسم البوس يميناً */}
+          <motion.div className="relative"
+            animate={{ scale: isBossHit ? 0.9 : isBossAdvancing ? 1.1 : 1, x: isBossAdvancing ? -30 : 0, filter: isBossHit ? 'brightness(2)' : 'brightness(1)' }}
+            transition={{ duration: 0.2 }}
+          >
+            <img src={bossConfig.image} alt="Boss Character" className="w-28 h-28 object-contain drop-shadow-[0_0_35px_rgba(239,68,68,0.4)]" />
+            
+            {damagePopups.filter(p => !p.isPlayer).map(popup => (
+              <motion.div key={popup.id} className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 font-black italic text-xl" initial={{ opacity: 1, y: 0 }} animate={{ opacity: 0, y: -40 }} transition={{ duration: 1.2 }}>
+                {popup.isDodge ? <span className="text-zinc-400">MISS</span> : <span className={popup.isCrit ? "text-yellow-400 text-2xl" : "text-white"}>-{popup.value}</span>}
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
+
+        {/* تأثيرات الضربات والقطع */}
+        <AnimatePresence>{slashEffect && <div className="absolute inset-0 pointer-events-none flex items-center justify-center"><div className="w-full h-1 bg-white animate-pulse" /></div>}</AnimatePresence>
+        <AnimatePresence>{swordEffect && <div className="absolute inset-0 pointer-events-none bg-amber-500/10" />}</AnimatePresence>
+        <AnimatePresence>{daggerEffect && <div className="absolute inset-0 pointer-events-none bg-purple-500/10" />}</AnimatePresence>
+        <AnimatePresence>{thunderBoltEffect && <div className="absolute inset-0 pointer-events-none bg-yellow-500/10" />}</AnimatePresence>
+
       </div>
 
-      <div className="relative z-20 bg-gradient-to-b from-[#080818] to-[#050510] border-t border-cyan-500/10">
-        <div className="px-3 py-1 border-b border-white/5 bg-black/50">
-          <div className="flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-            <span className="text-[6px] text-cyan-500/40 font-bold uppercase shrink-0 tracking-[0.2em]">LOG</span>
-            <span className="text-[8px] text-zinc-400 whitespace-nowrap">{latestLog}</span>
+      {/* لوحة التحكم والمهارات السفلية المصممة بشكل احترافي وجريء طبق الأصل */}
+      <div className="relative z-20 bg-[#0e0d1a] border-t border-white/5 rounded-t-[2.5rem] p-5 pt-6 space-y-4 shadow-[0_-15px_30px_rgba(0,0,0,0.6)]">
+        
+        {/* شريط السجلات المطور واللوق البسيط */}
+        <div className="bg-black/40 border border-white/5 rounded-xl px-4 py-2 flex items-center justify-between text-xs text-zinc-400 font-medium">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse shrink-0" />
+            <span className="truncate text-zinc-300 font-mono text-right">{latestLog}</span>
           </div>
+          <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider ml-2">LOG</span>
         </div>
 
-        <div className="px-2 pt-2 pb-1">
-          <div className="flex items-center gap-1 mb-1">
-            <Swords size={8} className="text-zinc-600" />
-            <span className="text-[6px] text-zinc-600 font-bold uppercase tracking-[0.2em]">ATTACKS</span>
+        {/* المهارات القتالية الأساسية */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-black text-zinc-400 px-1">
+            <Swords size={14} className="text-zinc-500" />
+            <span>المهارات الهجومية</span>
           </div>
-          <div className={`grid gap-1.5 ${hasDagger ? 'grid-cols-4' : 'grid-cols-3'}`}>
-            <SkillBtn onClick={basicAttack} disabled={isAttacking || battleOver || playerMana < 5}
-              icon={<Swords size={14} />} name="ضربة" dmg={basicDmg} mpCost={5}
-              color="cyan" />
-            <SkillBtn onClick={swordStrike} disabled={isAttacking || battleOver || swordCooldown > 0 || playerMana < 15}
-              icon={<Flame size={14} />} name="السيف" dmg={swordDmg} mpCost={15} cooldown={swordCooldown}
-              color="amber" />
-            <SkillBtn onClick={thunderDash} disabled={isAttacking || battleOver || thunderCooldown > 0 || playerMana < 50}
-              icon={<Zap size={14} />} name="البرق" dmg={thunderDmg} mpCost={50} cooldown={thunderCooldown}
-              color="yellow" />
+          <div className={`grid gap-2.5 ${hasDagger ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <SkillBtn onClick={basicAttack} disabled={isAttacking || battleOver || playerMana < 5} icon={<Swords size={16} />} name="ضربة" dmg={basicDmg} mpCost={5} color="cyan" />
+            <SkillBtn onClick={swordStrike} disabled={isAttacking || battleOver || swordCooldown > 0 || playerMana < 15} icon={<Flame size={16} />} name="السيف" dmg={swordDmg} mpCost={15} cooldown={swordCooldown} color="amber" />
+            <SkillBtn onClick={thunderDash} disabled={isAttacking || battleOver || thunderCooldown > 0 || playerMana < 50} icon={<Zap size={16} />} name="البرق" dmg={thunderDmg} mpCost={50} cooldown={thunderCooldown} color="yellow" />
             {hasDagger && (
-              <SkillBtn onClick={daggerStrikeAction} disabled={!hasDagger || isAttacking || battleOver || daggerCooldown > 0 || playerMana < 25}
-                icon={<Shield size={14} />} name="خنجر" dmg={daggerDmg} mpCost={25} cooldown={daggerCooldown}
-                color="purple" />
+              <SkillBtn onClick={daggerStrikeAction} disabled={!hasDagger || isAttacking || battleOver || daggerCooldown > 0 || playerMana < 25} icon={<Shield size={16} />} name="خنجر" dmg={daggerDmg} mpCost={25} cooldown={daggerCooldown} color="purple" />
             )}
           </div>
         </div>
 
-        <div className="px-2 pb-2 pt-1">
-          <div className="flex items-center gap-1 mb-1">
-            <Zap size={8} className="text-zinc-600" />
-            <span className="text-[6px] text-zinc-600 font-bold uppercase tracking-[0.2em]">ABILITIES</span>
+        {/* المهارات الإضافية والخاصة */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-black text-zinc-400 px-1">
+            <Zap size={14} className="text-zinc-500" />
+            <span>القدرات الخاصة</span>
           </div>
-          <div className={`grid gap-1.5 ${canUseDarkVoid ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            <button onClick={activateRagingSpeed}
-              disabled={battleOver || ragingSpeedCooldown > 0 || ragingSpeedActive || playerMana < 75}
-              className={`relative flex items-center gap-2 p-2 rounded-xl border-2 transition-all overflow-hidden
-                ${battleOver || ragingSpeedCooldown > 0 || ragingSpeedActive || playerMana < 75
-                  ? 'bg-zinc-900/60 border-zinc-800/40 opacity-40'
-                  : 'bg-gradient-to-r from-teal-950/60 to-teal-900/30 border-teal-500/30 hover:border-teal-400/60 active:scale-95'
-                }`}
+          <div className={`grid gap-2.5 ${canUseDarkVoid ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <button onClick={activateRagingSpeed} disabled={battleOver || ragingSpeedCooldown > 0 || ragingSpeedActive || playerMana < 75}
+              className={`relative flex items-center justify-between p-3 rounded-xl border transition-all overflow-hidden ${battleOver || ragingSpeedCooldown > 0 || ragingSpeedActive || playerMana < 75 ? 'bg-zinc-900/40 border-zinc-800/50 opacity-40' : 'bg-gradient-to-r from-teal-950/40 to-teal-900/20 border-teal-500/30 hover:border-teal-400/50 active:scale-95'}`}
             >
-              <div className="p-1 rounded-lg bg-teal-500/20"><Wind size={14} className="text-teal-400" /></div>
-              <div className="text-left">
-                <span className="text-[9px] font-black text-white block">تفادي</span>
-                <span className="text-[6px] text-zinc-500">75 MP</span>
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400"><Wind size={16} /></div>
+                <div className="text-right">
+                  <span className="text-xs font-black text-white block">سرعة جنونية (تفادي)</span>
+                  <span className="text-[10px] text-zinc-500">تفادي فائق للهجمات</span>
+                </div>
               </div>
-              {ragingSpeedCooldown > 0 && !ragingSpeedActive && (
-                <div className="absolute inset-0 bg-black/80 rounded-xl flex items-center justify-center">
-                  <span className="text-teal-400 font-black text-lg">{ragingSpeedCooldown}s</span>
-                </div>
-              )}
-              {ragingSpeedActive && (
-                <div className="absolute inset-0 bg-teal-500/20 rounded-xl flex items-center justify-center border-2 border-teal-400/50">
-                  <motion.span className="text-teal-300 font-black text-lg"
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 0.5, repeat: Infinity }}
-                  >{ragingSpeedTimer}s</motion.span>
-                </div>
-              )}
+              <span className="text-xs font-mono font-bold text-blue-400 shrink-0">75 MP</span>
+              {ragingSpeedCooldown > 0 && !ragingSpeedActive && <div className="absolute inset-0 bg-black/70 flex items-center justify-center font-bold text-teal-400">{ragingSpeedCooldown}s</div>}
+              {ragingSpeedActive && <div className="absolute inset-0 bg-teal-500/20 flex items-center justify-center font-bold text-teal-300">{ragingSpeedTimer}s</div>}
             </button>
 
             {canUseDarkVoid && (
-              <button onClick={darkVoidStrike}
-                disabled={isAttacking || battleOver || !isDarkVoidReady}
-                className={`relative flex items-center gap-2 p-2 rounded-xl border-2 transition-all overflow-hidden
-                  ${isAttacking || battleOver || !isDarkVoidReady
-                    ? 'bg-zinc-900/60 border-zinc-800/40 opacity-40'
-                    : 'bg-gradient-to-r from-purple-950/80 to-violet-900/40 border-purple-500/40 hover:border-purple-400/70 active:scale-95 shadow-[0_0_25px_rgba(139,92,246,0.3)]'
-                  }`}
+              <button onClick={darkVoidStrike} disabled={isAttacking || battleOver || !isDarkVoidReady}
+                className={`relative flex items-center justify-between p-3 rounded-xl border transition-all overflow-hidden ${isAttacking || battleOver || !isDarkVoidReady ? 'bg-zinc-900/40 border-zinc-800/50 opacity-40' : 'bg-gradient-to-r from-purple-950/40 to-violet-900/20 border-purple-500/30 hover:border-purple-400/50 active:scale-95 shadow-[0_0_20px_rgba(139,92,246,0.15)]'}`}
               >
-                <div className={`p-1 rounded-lg ${isDarkVoidReady ? 'bg-purple-500/30' : 'bg-zinc-800/50'}`}>
-                  <Eye size={14} className={isDarkVoidReady ? 'text-purple-400' : 'text-zinc-600'} />
-                </div>
-                <div className="text-left">
-                  <span className={`text-[9px] font-black block ${isDarkVoidReady ? 'text-purple-300' : 'text-zinc-600'}`}>ثقب الظلام</span>
-                  <span className="text-[6px] text-zinc-500">{darkVoidCharge}/{DARK_VOID_CHARGE_REQUIRED}</span>
-                </div>
-                {!isDarkVoidReady && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-800">
-                    <div className="h-full bg-purple-500 transition-all" style={{ width: `${(darkVoidCharge / DARK_VOID_CHARGE_REQUIRED) * 100}%` }} />
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400"><Eye size={16} /></div>
+                  <div className="text-right">
+                    <span className="text-xs font-black text-white block">ثقب الظلام</span>
+                    <span className="text-[10px] text-zinc-500">ضربة قاضية مطلقة</span>
                   </div>
-                )}
+                </div>
+                <span className="text-xs font-mono font-bold text-purple-400 shrink-0">{darkVoidCharge}/{DARK_VOID_CHARGE_REQUIRED}</span>
+                {!isDarkVoidReady && <div className="absolute bottom-0 left-0 right-0 h-1 bg-zinc-800"><div className="h-full bg-purple-500 transition-all" style={{ width: `${(darkVoidCharge / DARK_VOID_CHARGE_REQUIRED) * 100}%` }} /></div>}
               </button>
             )}
           </div>
         </div>
       </div>
 
+      {/* المودالز والنوافذ العلوية عند الفوز أو الخسارة */}
       <AnimatePresence>
         {showVictory && (
-          <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          >
-            <motion.div className="text-center space-y-5 px-6"
-              initial={{ scale: 0.5, y: 30 }}
-              animate={{ scale: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 12 }}
-            >
-              <motion.div className="text-5xl font-black italic tracking-[0.5em]"
-                animate={{ textShadow: ['0 0 30px rgba(6,182,212,0.5)', '0 0 60px rgba(6,182,212,0.9)', '0 0 30px rgba(6,182,212,0.5)'] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                style={{ color: '#06b6d4' }}
-              >
-                VICTORY
-              </motion.div>
-              <div className="text-zinc-400 text-sm tracking-[0.3em] uppercase">العدو قد سقط</div>
-              <div className="flex items-center justify-center gap-2 text-sm mt-2 px-4 py-2 rounded-xl bg-black/50 border"
-                style={{ color: bossConfig.color, borderColor: `${bossConfig.color}40` }}>
-                <Trophy size={14} />
-                {bossConfig.name} [{bossConfig.rank}]
+          <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="text-center space-y-4 px-6" initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+              <div className="text-4xl font-black italic tracking-widest text-cyan-400">VICTORY</div>
+              <div className="text-zinc-400 text-xs">تمت تصفية بوابة العدو بنجاح!</div>
+              <div className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-xl bg-black/40 border border-white/5 text-yellow-400">
+                <Trophy size={16} /> {bossConfig.name}
               </div>
-
-              <motion.div className="flex items-center justify-center gap-2"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Star className="text-yellow-400" size={20} />
-                <span className="text-yellow-400 font-black text-xl">+{xpGained.toLocaleString()} XP</span>
-              </motion.div>
-
-              <motion.button
-                onClick={handleShowLoot}
-                className="px-8 py-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-bold rounded-xl hover:bg-cyan-500/30 transition-all active:scale-95"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-              >
-                عرض الغنائم
-              </motion.button>
+              <div className="flex items-center justify-center gap-1.5 text-yellow-500 font-bold"><Star size={16} /> +{xpGained} XP</div>
+              <button onClick={handleShowLoot} className="mt-2 px-6 py-2.5 bg-cyan-500 text-black font-black rounded-xl active:scale-95 transition-all text-xs">عرض الغنائم</button>
             </motion.div>
           </motion.div>
         )}
@@ -907,61 +667,24 @@ const HunterBattle = () => {
 
       <AnimatePresence>
         {showLoot && (
-          <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          >
-            <motion.div className="w-[85%] max-w-sm"
-              initial={{ scale: 0.7, y: 40 }}
-              animate={{ scale: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 14 }}
-            >
-              <div className="bg-gradient-to-b from-cyan-950/90 to-[#0a0a1a] border border-cyan-500/30 rounded-2xl overflow-hidden" style={{ boxShadow: '0 0 50px rgba(6,182,212,0.2)' }}>
-                <div className="px-4 py-3 border-b border-cyan-500/20 flex items-center gap-2">
-                  <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}>
-                    <Sparkles size={14} className="text-cyan-400" />
-                  </motion.div>
-                  <span className="text-[10px] font-black text-cyan-400 tracking-[0.3em] uppercase">SYSTEM LOOT</span>
-                </div>
-
-                <div className="p-4 space-y-2.5">
-                  {lootItems.map((item, i) => (
-                    <motion.div key={i}
-                      initial={{ x: -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 + i * 0.15 }}
-                      className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border"
-                      style={{ borderColor: `${RARITY_COLORS[item.rarity]}30` }}
-                    >
-                      <motion.span className="text-2xl"
-                        animate={{ y: [0, -3, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-                      >{item.icon}</motion.span>
-                      <div className="flex-1">
-                        <span className="text-[11px] font-bold block" style={{ color: RARITY_COLORS[item.rarity] }}>{item.name}</span>
-                        <span className="text-[8px] uppercase tracking-[0.2em]" style={{ color: `${RARITY_COLORS[item.rarity]}80` }}>{item.rarity}</span>
+          <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="w-[85%] max-w-sm bg-[#0e0d1a] border border-white/5 rounded-2xl p-5 space-y-4" initial={{ scale: 0.8 }}>
+              <div className="flex items-center gap-2 text-cyan-400 font-black text-sm border-b border-white/5 pb-2"><Sparkles size={16} /> غنائم النظام المستخرجة</div>
+              <div className="space-y-2">
+                {lootItems.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{item.icon}</span>
+                      <div>
+                        <span className="text-xs font-bold block" style={{ color: RARITY_COLORS[item.rarity] }}>{item.name}</span>
+                        <span className="text-[9px] uppercase text-zinc-500 tracking-wider">{item.rarity}</span>
                       </div>
-                      {item.amount && (
-                        <div className="flex items-center gap-1">
-                          <Coins size={10} className="text-yellow-400" />
-                          <span className="text-[10px] font-bold text-yellow-400">+{item.amount}</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-
-                <div className="px-4 pb-4">
-                  <motion.button
-                    onClick={handleFinish}
-                    className="w-full py-3 bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 font-bold rounded-xl hover:bg-cyan-500/25 transition-all active:scale-95"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 + lootItems.length * 0.15 }}
-                  >
-                    إنهاء
-                  </motion.button>
-                </div>
+                    </div>
+                    {item.amount && <span className="text-xs font-bold text-yellow-400 font-mono">+{item.amount}</span>}
+                  </div>
+                ))}
               </div>
+              <button onClick={handleFinish} className="w-full py-3 bg-cyan-500 text-black font-black rounded-xl active:scale-95 transition-all text-xs">تأكيد ومغادرة البوابة</button>
             </motion.div>
           </motion.div>
         )}
@@ -969,23 +692,11 @@ const HunterBattle = () => {
 
       <AnimatePresence>
         {isPlayerDead && !isBossDead && (
-          <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          >
-            <motion.div className="text-center space-y-5"
-              initial={{ scale: 0.7 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', damping: 12 }}
-            >
-              <motion.div className="text-5xl font-black italic text-red-500 tracking-[0.4em]"
-                animate={{ textShadow: ['0 0 20px rgba(239,68,68,0.5)', '0 0 50px rgba(239,68,68,0.9)', '0 0 20px rgba(239,68,68,0.5)'] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >DEFEAT</motion.div>
-              <div className="text-zinc-400 text-sm tracking-[0.2em]">لقد هُزمت...</div>
-              <button onClick={resetBattle}
-                className="px-8 py-3 bg-red-500/15 border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/25 transition-all active:scale-95">
-                إعادة المحاولة
-              </button>
+          <motion.div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <motion.div className="text-center space-y-4" initial={{ scale: 0.8 }}>
+              <div className="text-4xl font-black italic tracking-widest text-red-500">DEFEAT</div>
+              <div className="text-zinc-400 text-xs">لقد انهارت قواك داخل الزنزانة...</div>
+              <button onClick={resetBattle} className="px-6 py-2.5 bg-red-500/20 border border-red-500/40 text-red-400 font-black rounded-xl active:scale-95 transition-all text-xs">إعادة محاولة الغارة</button>
             </motion.div>
           </motion.div>
         )}
@@ -993,8 +704,8 @@ const HunterBattle = () => {
 
       <style>{`
         @keyframes flash { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
-        @keyframes screen-shake { 0%, 100% { transform: translate(0); } 10% { transform: translate(-4px, 2px); } 20% { transform: translate(4px, -2px); } 30% { transform: translate(-3px, -1px); } 40% { transform: translate(3px, 1px); } }
-        .animate-screen-shake { animation: screen-shake 0.4s ease-out; }
+        @keyframes screen-shake { 0%, 100% { transform: translate(0); } 10% { transform: translate(-3px, 1px); } 20% { transform: translate(3px, -1px); } 30% { transform: translate(-2px, -1px); } 40% { transform: translate(2px, 1px); } }
+        .animate-screen-shake { animation: screen-shake 0.3s ease-out; }
       `}</style>
     </div>
   );
@@ -1012,30 +723,30 @@ interface SkillBtnProps {
 }
 
 const colorMap = {
-  cyan: { from: 'from-cyan-950/60', to: 'to-cyan-900/30', border: 'border-cyan-500/30', hover: 'hover:border-cyan-400/60', text: 'text-cyan-400', bg: 'bg-cyan-500/20', cd: 'text-cyan-400' },
-  amber: { from: 'from-amber-950/60', to: 'to-amber-900/30', border: 'border-amber-500/30', hover: 'hover:border-amber-400/60', text: 'text-amber-400', bg: 'bg-amber-500/20', cd: 'text-amber-400' },
-  yellow: { from: 'from-yellow-950/60', to: 'to-yellow-900/30', border: 'border-yellow-500/30', hover: 'hover:border-yellow-400/60', text: 'text-yellow-400', bg: 'bg-yellow-500/20', cd: 'text-yellow-400' },
-  purple: { from: 'from-purple-950/60', to: 'to-purple-900/30', border: 'border-purple-500/30', hover: 'hover:border-purple-400/60', text: 'text-purple-400', bg: 'bg-purple-500/20', cd: 'text-purple-400' },
+  cyan: { from: 'from-cyan-950/40', to: 'to-cyan-900/10', border: 'border-cyan-500/20', hover: 'hover:border-cyan-400/40', text: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  amber: { from: 'from-amber-950/40', to: 'to-amber-900/10', border: 'border-amber-500/20', hover: 'hover:border-amber-400/40', text: 'text-amber-400', bg: 'bg-amber-500/10' },
+  yellow: { from: 'from-yellow-950/40', to: 'to-yellow-900/10', border: 'border-yellow-500/20', hover: 'hover:border-yellow-400/40', text: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+  purple: { from: 'from-purple-950/40', to: 'to-purple-900/10', border: 'border-purple-500/20', hover: 'hover:border-purple-400/40', text: 'text-purple-400', bg: 'bg-purple-500/10' },
 };
 
 const SkillBtn = ({ onClick, disabled, icon, name, dmg, mpCost, cooldown, color }: SkillBtnProps) => {
   const c = colorMap[color];
   return (
     <button onClick={onClick} disabled={disabled}
-      className={`relative flex flex-col items-center justify-center p-1.5 rounded-xl border-2 transition-all overflow-hidden
-        ${disabled ? 'bg-zinc-900/60 border-zinc-800/40 opacity-40' : `bg-gradient-to-b ${c.from} ${c.to} ${c.border} ${c.hover} active:scale-95`}`}>
-      <div className={`mb-0.5 p-1 rounded-lg ${disabled ? 'bg-zinc-800/50' : c.bg}`}>
-        <span className={disabled ? 'text-zinc-600' : c.text}>{icon}</span>
+      className={`relative flex flex-col items-center justify-center p-2 rounded-xl border transition-all overflow-hidden ${disabled ? 'bg-zinc-900/40 border-zinc-800/50 opacity-30' : `bg-gradient-to-b ${c.from} ${c.to} ${c.border} ${c.hover} active:scale-95`}`}
+    >
+      <div className={`mb-1 p-1 rounded-lg ${disabled ? 'bg-zinc-800/40' : c.bg} ${disabled ? 'text-zinc-600' : c.text}`}>
+        {icon}
       </div>
-      <span className={`text-[8px] font-black ${disabled ? 'text-zinc-600' : 'text-white'}`}>{name}</span>
-      <span className="text-[6px] text-zinc-500">{dmg.toLocaleString()}</span>
-      <div className="flex items-center gap-0.5">
-        <Battery size={5} className="text-blue-400" />
-        <span className="text-[5px] text-blue-400/70">{mpCost}</span>
+      <span className={`text-[10px] font-black ${disabled ? 'text-zinc-500' : 'text-white'}`}>{name}</span>
+      <span className="text-[9px] font-mono text-zinc-500 mt-0.5">{dmg.toLocaleString()}</span>
+      <div className="flex items-center gap-0.5 mt-0.5">
+        <Battery size={6} className="text-blue-400 opacity-60" />
+        <span className="text-[8px] font-mono text-blue-400/70">{mpCost}</span>
       </div>
       {cooldown !== undefined && cooldown > 0 && (
-        <div className="absolute inset-0 bg-black/80 rounded-xl flex items-center justify-center">
-          <span className={`${c.cd} font-black text-lg`}>{cooldown}s</span>
+        <div className="absolute inset-0 bg-black/75 flex items-center justify-center font-mono font-black text-sm text-white">
+          {cooldown}s
         </div>
       )}
     </button>
