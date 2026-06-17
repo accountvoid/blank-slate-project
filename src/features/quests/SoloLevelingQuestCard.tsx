@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { 
   Dumbbell, 
@@ -9,17 +9,16 @@ import {
   ChevronDown, 
   ChevronUp, 
   Sparkles, 
-  Skull,
   Play,
   X,
   CheckCircle,
   Timer,
   Crown,
-  Target,
-  Pause
+  Target
 } from 'lucide-react';
 import { StatType, Quest } from '@/types/game';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase'; // تأكد من صحة مسار استيراد عميل Supabase في مشروعك
 
 interface QuestCardProps {
   quests: Quest[];
@@ -62,17 +61,17 @@ const difficultyConfig = {
 
 interface QuestModalProps {
   quest: Quest;
+  allQuests: Quest[]; // ممرر لتحديث مصفوفة المهام الكاملة في Supabase
   onClose: () => void;
   onStart: () => void;
   onComplete: () => void;
   onUpdateProgress?: (timeProgress: number) => void;
 }
 
-const QuestModal = ({ quest, onClose, onStart, onComplete, onUpdateProgress }: QuestModalProps) => {
+const QuestModal = ({ quest, allQuests, onClose, onStart, onComplete, onUpdateProgress }: QuestModalProps) => {
   const [now, setNow] = useState(Date.now());
   const [isVisible, setIsVisible] = useState(false);
   const config = categoryConfig[quest.category];
-  const diffConfig = difficultyConfig[quest.difficulty];
   const Icon = config.icon;
 
   const requiredTimeInSeconds = (quest.requiredTime || 0) * 60;
@@ -97,11 +96,41 @@ const QuestModal = ({ quest, onClose, onStart, onComplete, onUpdateProgress }: Q
     return () => clearInterval(timer);
   }, [isRunning]);
 
+  // مزامنة وحفظ التقدم الزمني في Supabase كلما تغير الـ timeProgress لمنع ضياع العداد
+  const lastSavedProgress = useRef<number>(-1);
   useEffect(() => {
-    if (onUpdateProgress && quest.startedAt) {
+    if (onUpdateProgress && quest.startedAt && timeProgress !== lastSavedProgress.current) {
+      lastSavedProgress.current = timeProgress;
       onUpdateProgress(timeProgress);
+
+      // دالة مزامنة التقدم الفوري لـ Supabase لمنع أي تعليق أو فقدان للبيانات
+      const syncProgressToSupabase = async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          const updatedQuestsArray = allQuests.map(q => {
+            if (q.id === quest.id) {
+              return { ...q, timeProgress: timeProgress };
+            }
+            return q;
+          });
+
+          await supabase
+            .from('profiles')
+            .update({ quests: updatedQuestsArray })
+            .eq('id', user.id);
+        } catch (error) {
+          console.error("Error syncing quest progress to Supabase:", error);
+        }
+      };
+
+      // الحفظ الفوري عند الاكتمال أو كل 5 ثوانٍ دورياً أثناء الركض لتقليل استهلاك الشبكة
+      if (timeProgress >= requiredTimeInSeconds || timeProgress % 5 === 0) {
+        syncProgressToSupabase();
+      }
     }
-  }, [timeProgress]);
+  }, [timeProgress, quest.startedAt, onUpdateProgress, quest.id, allQuests, requiredTimeInSeconds]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -109,8 +138,49 @@ const QuestModal = ({ quest, onClose, onStart, onComplete, onUpdateProgress }: Q
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const nowIso = new Date().toISOString();
+        const updatedQuestsArray = allQuests.map(q => {
+          if (q.id === quest.id) {
+            return { ...q, startedAt: nowIso, active: true };
+          }
+          return q;
+        });
+
+        await supabase
+          .from('profiles')
+          .update({ quests: updatedQuestsArray })
+          .eq('id', user.id);
+      }
+    } catch (e) {
+      console.error("Error starting quest in Supabase:", e);
+    }
     onStart();
+  };
+
+  const handleComplete = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const updatedQuestsArray = allQuests.map(q => {
+          if (q.id === quest.id) {
+            return { ...q, completed: true, active: false, timeProgress: requiredTimeInSeconds };
+          }
+          return q;
+        });
+
+        await supabase
+          .from('profiles')
+          .update({ quests: updatedQuestsArray })
+          .eq('id', user.id);
+      }
+    } catch (e) {
+      console.error("Error completing quest in Supabase:", e);
+    }
+    onComplete();
   };
 
   const progressPercentage = requiredTimeInSeconds > 0 
@@ -132,11 +202,11 @@ const QuestModal = ({ quest, onClose, onStart, onComplete, onUpdateProgress }: Q
         onClick={handleClose}
       />
       
-        <div className={cn(
-          "relative z-10 w-full max-w-sm transition-all duration-700 ease-[cubic-bezier(0.2,1,0.2,1)]",
+      <div className={cn(
+        "relative z-10 w-full max-w-sm transition-all duration-700 ease-[cubic-bezier(0.2,1,0.2,1)]",
         isVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-8"
       )}>
-          <div className="pointer-events-none absolute -inset-2 bg-gradient-to-b from-cyan-500/20 via-blue-500/10 to-cyan-500/20 blur-xl opacity-60" />
+        <div className="pointer-events-none absolute -inset-2 bg-gradient-to-b from-cyan-500/20 via-blue-500/10 to-cyan-500/20 blur-xl opacity-60" />
         
         <div className="relative overflow-hidden" style={{
           background: 'linear-gradient(180deg, rgba(8,20,40,0.98) 0%, rgba(4,12,28,0.99) 50%, rgba(8,20,40,0.98) 100%)',
@@ -281,15 +351,15 @@ const QuestModal = ({ quest, onClose, onStart, onComplete, onUpdateProgress }: Q
               </div>
             ) : !quest.startedAt ? (
               <div className="grid grid-cols-2 gap-3">
-                 <button
-                   type="button"
+                <button
+                  type="button"
                   onClick={handleClose}
                   className="py-3.5 border border-slate-700/50 text-slate-500 font-bold text-xs tracking-[0.2em] uppercase hover:text-slate-300 hover:border-slate-500/50 transition-all"
                 >
                   CLOSE
                 </button>
-                 <button
-                   type="button"
+                <button
+                  type="button"
                   onClick={handleStart}
                   className="py-3.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black text-xs tracking-[0.2em] uppercase shadow-[0_0_30px_rgba(56,189,248,0.3)] hover:shadow-[0_0_40px_rgba(56,189,248,0.4)] transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
@@ -298,9 +368,9 @@ const QuestModal = ({ quest, onClose, onStart, onComplete, onUpdateProgress }: Q
                 </button>
               </div>
             ) : (
-               <button
-                 type="button"
-                onClick={onComplete}
+              <button
+                type="button"
+                onClick={handleComplete}
                 disabled={!isCompleted}
                 className={cn(
                   "w-full py-4 font-black text-sm tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-2",
@@ -393,7 +463,7 @@ export const SoloLevelingQuestCard = ({
         setSelectedQuest(updatedQuest);
       }
     }
-  }, [quests]);
+  }, [quests, selectedQuest]);
 
   const getQuestsPerCategory = () => {
     const categories: StatType[] = ['strength', 'mind', 'spirit', 'agility'];
@@ -419,7 +489,7 @@ export const SoloLevelingQuestCard = ({
       setShowCompletion(true);
       setTimeout(() => setShowCompletion(false), 5000);
     }
-  }, [allCompleted]);
+  }, [allCompleted, showCompletion]);
 
   const handleQuestClick = (quest: Quest) => {
     setSelectedQuest(quest);
@@ -551,7 +621,7 @@ export const SoloLevelingQuestCard = ({
               </h3>
               
               <div className="space-y-1">
-                {displayQuests.map((quest, index) => {
+                {displayQuests.map((quest) => {
                   const config = categoryConfig[quest.category];
                   const Icon = config.icon;
 
@@ -637,7 +707,6 @@ export const SoloLevelingQuestCard = ({
                 </p>
               </div>
 
-              {/* Countdown timer moved here (Replacing Total Reward) */}
               <div className="mt-4 flex items-center justify-center">
                 {dailyTimeLeft && (
                   <div className="flex items-center gap-2 px-4 py-2 border border-cyan-500/20 bg-cyan-500/5">
@@ -656,6 +725,7 @@ export const SoloLevelingQuestCard = ({
       {selectedQuest && (
         <QuestModal
           quest={selectedQuest}
+          allQuests={quests} // تمرير المصفوفة كاملة للمودال لضمان التحديث الصحيح للهيكل في Supabase
           onClose={() => setSelectedQuest(null)}
           onStart={handleStartQuest}
           onComplete={handleCompleteQuest}
