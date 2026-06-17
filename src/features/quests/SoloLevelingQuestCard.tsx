@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { StatType, Quest } from '@/types/game';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase'; // تأكد من صحة مسار استيراد عميل Supabase في مشروعك
+import { supabase } from '@/supabase'; // تأكد من صحة مسار استيراد عميل Supabase في مشروعك
 
 interface QuestCardProps {
   quests: Quest[];
