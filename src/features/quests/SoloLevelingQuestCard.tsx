@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { StatType, Quest } from '@/types/game';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/supabase'; 
 
 interface QuestCardProps {
   quests: Quest[];
@@ -95,33 +94,19 @@ const QuestModal = ({ quest, allQuests, onClose, onStart, onComplete, onUpdatePr
       lastSavedProgress.current = timeProgress;
       onUpdateProgress(timeProgress);
 
-      const syncProgressToSupabase = async () => {
-        try {
-          const { data: sessionData } = await supabase.auth.getSession();
-          const userId = sessionData?.session?.user?.id;
-          if (!userId) return;
-
-          const updatedQuestsArray = allQuests.map(q => {
-            if (q.id === quest.id) {
-              return { ...q, timeProgress: timeProgress };
-            }
-            return q;
-          });
-
-          // تم تعديل بنية الإرسال لضمان كتابة الكائن داخل الحقل بالصيغتين الاحتياطيتين لضمان القبول
-          await supabase
-            .from('profiles')
-            .update({ 
-              Quests: updatedQuestsArray // إرسال المصفوفة مباشرة كجذر داخل حقل الكائن ليتوافق مع الـ JSONB الفردي
-            })
-            .eq('id', userId);
-        } catch (error) {
-          console.error("Error syncing quest progress to Supabase:", error);
-        }
+      // حفظ التقدم محلياً في المتصفح عند تغيير العداد
+      const syncProgressToLocalStorage = () => {
+        const updatedQuestsArray = allQuests.map(q => {
+          if (q.id === quest.id) {
+            return { ...q, timeProgress: timeProgress };
+          }
+          return q;
+        });
+        localStorage.setItem('local_active_quests', JSON.stringify(updatedQuestsArray));
       };
 
       if (timeProgress >= requiredTimeInSeconds || timeProgress % 5 === 0) {
-        syncProgressToSupabase();
+        syncProgressToLocalStorage();
       }
     }
   }, [timeProgress, quest.startedAt, onUpdateProgress, quest.id, allQuests, requiredTimeInSeconds]);
@@ -132,56 +117,30 @@ const QuestModal = ({ quest, allQuests, onClose, onStart, onComplete, onUpdatePr
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleStart = async () => {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData?.session?.user?.id;
-      
-      if (userId) {
-        const nowIso = new Date().toISOString();
-        const updatedQuestsArray = allQuests.map(q => {
-          if (q.id === quest.id) {
-            return { ...q, startedAt: nowIso, active: true };
-          }
-          return q;
-        });
-
-        await supabase
-          .from('profiles')
-          .update({ 
-            Quests: updatedQuestsArray
-          })
-          .eq('id', userId);
+  const handleStart = () => {
+    const nowIso = new Date().toISOString();
+    const updatedQuestsArray = allQuests.map(q => {
+      if (q.id === quest.id) {
+        return { ...q, startedAt: nowIso, active: true };
       }
-    } catch (e) {
-      console.error("Error starting quest in Supabase:", e);
-    }
+      return q;
+    });
+
+    // حفظ حالة بدء المهمة محلياً
+    localStorage.setItem('local_active_quests', JSON.stringify(updatedQuestsArray));
     onStart();
   };
 
-  const handleComplete = async () => {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData?.session?.user?.id;
-      
-      if (userId) {
-        const updatedQuestsArray = allQuests.map(q => {
-          if (q.id === quest.id) {
-            return { ...q, completed: true, active: false, timeProgress: requiredTimeInSeconds };
-          }
-          return q;
-        });
-
-        await supabase
-          .from('profiles')
-          .update({ 
-            Quests: updatedQuestsArray
-          })
-          .eq('id', userId);
+  const handleComplete = () => {
+    const updatedQuestsArray = allQuests.map(q => {
+      if (q.id === quest.id) {
+        return { ...q, completed: true, active: false, timeProgress: requiredTimeInSeconds };
       }
-    } catch (e) {
-      console.error("Error completing quest in Supabase:", e);
-    }
+      return q;
+    });
+
+    // حفظ حالة اكتمال المهمة محلياً
+    localStorage.setItem('local_active_quests', JSON.stringify(updatedQuestsArray));
     onComplete();
   };
 
@@ -737,3 +696,4 @@ export const SoloLevelingQuestCard = ({
     </>
   );
 };
+ 
