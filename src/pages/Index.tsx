@@ -36,6 +36,7 @@ const Index = () => {
     updateSideQuestProgress,
     failQuest,
   } = useGameState();
+  
   const { playQuestComplete, playUseAbility } = useSoundEffects();
   const [activePrayerQuest, setActivePrayerQuest] = useState<string | null>(null);
   const [showNewQuestNotification, setShowNewQuestNotification] = useState(false);
@@ -47,7 +48,7 @@ const Index = () => {
   const [newGate, setNewGate] = useState<Gate | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // حالة محلية موحدة تدمج تقدم الوقت المحلي وحالة الاكتمال من Supabase
+  // حالة محلية موحدة ومحمية لإدارة الـ Quests
   const [hybridQuestsState, setHybridQuestsState] = useState<Quest[]>([]);
 
   const menuItems = [
@@ -56,7 +57,7 @@ const Index = () => {
     { key: 'abilities', label: t('nav.abilities'), labelEn: 'Abilities', icon: Zap, color: 'text-purple-400', borderColor: 'border-purple-500/40', bgColor: 'bg-purple-500/10', path: '/abilities' },
   ];
 
-  // دالة لمزامنة وإرسال مصفوفة المهمات الكاملة والمحدثة إلى حقل Quests في Supabase
+  // دالة مزامنة مصفوفة المهمات الكاملة مع الـ Supabase
   const syncQuestsToSupabase = async (updatedQuests: Quest[]) => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -72,42 +73,49 @@ const Index = () => {
     }
   };
 
-  // معالجة دمج البيانات: تقدم وقت من الـ localStorage وحالة من الـ Supabase (gameState)
+  // معالجة دمج البيانات وحمايتها من التصفير عند تحميل الصفحة أو تحديث الـ gameState
   useEffect(() => {
     if (gameState.quests && gameState.quests.length > 0) {
       const dbQuests = gameState.quests.filter(q => q.dailyReset && q.isMainQuest !== false);
       
-      // محاولة جلب تقدم العدادات المخزنة محلياً
-      const savedLocalProgress = localStorage.getItem('local_quests_progress');
+      // جلب آخر تقدم مخزن محلياً (المصدر الأساسي والأقوى للوقت)
+      const savedLocalProgress = localStorage.getItem('local_quests_progress') || localStorage.getItem('local_active_quests');
       let localQuests: Quest[] = [];
       if (savedLocalProgress) {
-        try { localQuests = JSON.parse(savedLocalProgress); } catch(e) { console.error(e); }
+        try { 
+          localQuests = JSON.parse(savedLocalProgress); 
+        } catch(e) { 
+          console.error("Error parsing local quests:", e); 
+        }
       }
 
-      // دمج البيانات بدقة
+      // الدمج مع فرض بيانات الوقت المخزنة محلياً لعدم ضياع العداد
       const hybridQuests = dbQuests.map(dbQ => {
         const matchedLocal = localQuests.find(locQ => locQ.id === dbQ.id);
+        
+        // إذا كانت المهمة مكتملة في الـ Database فنعيد تصفير حالتها المحلية، وإلا نلتزم بالوقت المحلي
         return {
           ...dbQ,
-          // الاحتفاظ بتقدم الوقت والبدء من الـ localStorage فقط
-          startedAt: matchedLocal ? matchedLocal.startedAt : dbQ.startedAt,
-          timeProgress: matchedLocal ? matchedLocal.timeProgress : dbQ.timeProgress,
-          active: matchedLocal ? matchedLocal.active : dbQ.active,
-          // الاعتماد الكلي على حالة الاكتمال والبيانات الأساسية القادمة من Supabase
+          startedAt: dbQ.completed ? undefined : (matchedLocal ? matchedLocal.startedAt : dbQ.startedAt),
+          timeProgress: dbQ.completed ? 0 : (matchedLocal && matchedLocal.timeProgress !== undefined ? matchedLocal.timeProgress : (dbQ.timeProgress || 0)),
+          active: dbQ.completed ? false : (matchedLocal ? matchedLocal.active : dbQ.active),
           completed: dbQ.completed
         };
       });
 
       setHybridQuestsState(hybridQuests);
+      
+      // تحديث فوري للـ LocalStorage لضمان بقائه متزامنًا مع التعديلات الجديدة
+      localStorage.setItem('local_quests_progress', JSON.stringify(hybridQuests));
     }
   }, [gameState.quests]);
 
-  // Check for max level - المستوى الأقصى هو 50
+  // فحص المستوى الأقصى (50)
   const maxLevel = Math.max(
-    gameState.levels.strength,
-    gameState.levels.mind,
-    gameState.levels.spirit,
-    gameState.levels.agility
+    gameState.levels?.strength || 0,
+    gameState.levels?.mind || 0,
+    gameState.levels?.spirit || 0,
+    gameState.levels?.agility || 0
   );
   
   useEffect(() => {
@@ -116,35 +124,38 @@ const Index = () => {
     }
   }, [maxLevel]);
 
-  // Timer-based penalty
+  // عقوبة انتهاء الوقت (24 ساعة)
   useEffect(() => {
     if (hybridQuestsState.length === 0) return;
-    const allStarted = hybridQuestsState.every(q => q.startedAt);
-    const noneCompleted = hybridQuestsState.every(q => !q.completed);
-    
-    if (!allStarted || !noneCompleted) return;
     
     const checkExpired = () => {
-      const now = Date.now();
-      hybridQuestsState.forEach(q => {
-        if (!q.startedAt || !q.requiredTime || q.completed) return;
-        const started = new Date(q.startedAt).getTime();
-        const elapsed = (now - started) / 1000;
-        if (elapsed >= q.requiredTime * 60) {
-          failQuest(q.id);
+      const startTimeStr = localStorage.getItem('daily_quest_start');
+      if (!startTimeStr) return;
+      
+      const startTime = parseInt(startTimeStr);
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+      const elapsed = Date.now() - startTime;
+
+      if (elapsed >= TWENTY_FOUR_HOURS) {
+        const allCompleted = hybridQuestsState.every(q => q.completed);
+        if (!allCompleted) {
+          // تفجير العقوبة فوراً
+          failQuest(hybridQuestsState[0].id);
+          navigate('/penalty');
         }
-      });
+      }
     };
     
     const interval = setInterval(checkExpired, 5000);
     return () => clearInterval(interval);
-  }, [hybridQuestsState, failQuest]);
+  }, [hybridQuestsState, failQuest, navigate]);
 
-  // Check for prayer time
+  // فحص أوقات الصلوات
   useEffect(() => {
+    if (!gameState.prayerQuests) return;
+
     const checkPrayerTime = () => {
       const now = new Date();
-      
       const duePrayer = gameState.prayerQuests.find(p => {
         if (p.completed) return false;
         const prayerHour = parseInt(p.time.split(':')[0]);
@@ -152,7 +163,7 @@ const Index = () => {
         return currentHour >= prayerHour && currentHour < prayerHour + 1;
       });
 
-      if (duePrayer && !activePrayerQuest) {
+      if (duePrayer && activePrayerQuest !== duePrayer.id) {
         setActivePrayerQuest(duePrayer.id);
       }
     };
@@ -162,7 +173,7 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [gameState.prayerQuests, activePrayerQuest]);
 
-  // Show new quest notification
+  // إشعار المهام الجديدة عند فتح التطبيق أول مرة
   useEffect(() => {
     const hasIncompleteQuests = hybridQuestsState.some(q => !q.completed);
     if (hasIncompleteQuests) {
@@ -170,9 +181,9 @@ const Index = () => {
       const timer = setTimeout(() => setShowNewQuestNotification(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [hybridQuestsState.length]);
 
-  // إشعار البوابات الجديدة
+  // إشعارات اكتشاف البوابات
   useEffect(() => {
     const gates = gameState.gates || [];
     if (gates.length === 0) return;
@@ -189,7 +200,7 @@ const Index = () => {
     }
   }, [gameState.gates]);
 
-  // الاستماع لإشعار البوابات الجديدة من التحديث التلقائي
+  // إشعار ظهور بوابة جديدة تلقائياً
   useEffect(() => {
     const handleNewGate = () => {
       const gates = gameState.gates || [];
@@ -206,44 +217,51 @@ const Index = () => {
     return () => window.removeEventListener('newGateAppeared', handleNewGate);
   }, [gameState.gates]);
 
-  // معالجة العمليات والربط بين الـ LocalStorage للمؤقتات والـ Supabase للحالة النهائية
+  // عند الضغط على زر إكمال المهمة واستلام الجائزة
   const handleTaskComplete = (taskId: string) => {
     playQuestComplete();
     
     const updated = hybridQuestsState.map(q => {
       if (q.id === taskId) {
-        return { ...q, completed: true, active: false };
+        return { ...q, completed: true, active: false, startedAt: undefined, timeProgress: 0 };
       }
       return q;
     });
     
     setHybridQuestsState(updated);
-    // 1. تحديث الـ LocalStorage وحذف التقدم الجاري للمهمة بعد انتهائها
+    
+    // 1. التحديث الفوري للمخزن المحلي
     localStorage.setItem('local_quests_progress', JSON.stringify(updated));
-    // 2. مزامنة حالة الاكتمال النهائية فوراً إلى قاعدة بيانات Supabase
+    localStorage.setItem('local_active_quests', JSON.stringify(updated));
+    
+    // 2. المزامنة المباشرة مع الخادم وقاعدة البيانات
     syncQuestsToSupabase(updated);
-
     completeQuest(taskId);
+    
     setSystemMessage(t('index.questCompleteMessage'));
     setTimeout(() => setSystemMessage(null), 3000);
   };
 
+  // عند قبول المهمة وبدء العداد
   const handleStartQuest = (questId: string) => {
     const nowIso = new Date().toISOString();
     const updated = hybridQuestsState.map(q => {
       if (q.id === questId) {
-        return { ...q, startedAt: nowIso, active: true };
+        return { ...q, startedAt: nowIso, active: true, timeProgress: q.timeProgress || 0 };
       }
       return q;
     });
 
     setHybridQuestsState(updated);
-    // حفظ حالة بدء وقت المهمة محلياً فقط لمنع أي تعليق
+    
+    // حفظ حالة البداية محلياً فوراً لمنع التصفير عند التنقل
     localStorage.setItem('local_quests_progress', JSON.stringify(updated));
+    localStorage.setItem('local_active_quests', JSON.stringify(updated));
 
     startSideQuest(questId);
   };
 
+  // المزامنة الدورية المستمرة لكل ثانية لتقدم الوقت الجاري للمهمة
   const handleUpdateQuestProgress = (questId: string, timeProgress: number) => {
     const updated = hybridQuestsState.map(q => {
       if (q.id === questId) {
@@ -253,8 +271,10 @@ const Index = () => {
     });
 
     setHybridQuestsState(updated);
-    // حفظ واستمرار تقدم الثواني والدقائق محلياً 100% في المتصفح والجهاز
+    
+    // حفظ مستمر ودقيق لكل ثانية تمر محلياً بالجهاز
     localStorage.setItem('local_quests_progress', JSON.stringify(updated));
+    localStorage.setItem('local_active_quests', JSON.stringify(updated));
 
     updateSideQuestProgress(questId, timeProgress);
   };
@@ -268,14 +288,14 @@ const Index = () => {
     playUseAbility();
     useAbility(abilityId);
     
-    const ability = gameState.abilities.find(a => a.id === abilityId);
+    const ability = gameState.abilities?.find(a => a.id === abilityId);
     if (ability) {
       setSystemMessage(t('index.abilityActivated', { name: ability.name }));
       setTimeout(() => setSystemMessage(null), 3000);
     }
   };
 
-  const currentPrayer = activePrayerQuest 
+  const currentPrayer = activePrayerQuest && gameState.prayerQuests
     ? gameState.prayerQuests.find(p => p.id === activePrayerQuest) 
     : null;
 
@@ -418,7 +438,7 @@ const Index = () => {
         onEnter={() => setShowGateNotification(false)}
       />
 
-      {/* New Gate Notification with Sound */}
+      {/* New Gate Notification */}
       <NewGateNotification
         show={showNewGateNotification}
         gate={newGate}
