@@ -52,13 +52,6 @@ const categoryConfig = {
   },
 };
 
-const difficultyConfig = {
-  easy: { name: 'E' },
-  medium: { name: 'D' },
-  hard: { name: 'C' },
-  legendary: { name: 'S' },
-};
-
 interface QuestModalProps {
   quest: Quest;
   allQuests: Quest[]; 
@@ -115,10 +108,11 @@ const QuestModal = ({ quest, allQuests, onClose, onStart, onComplete, onUpdatePr
             return q;
           });
 
+          // تم تعديل بنية الإرسال لضمان كتابة الكائن داخل الحقل بالصيغتين الاحتياطيتين لضمان القبول
           await supabase
             .from('profiles')
             .update({ 
-              Quests: { activeQuests: updatedQuestsArray } // تم التعديل إلى الحرف الكبير Quests
+              Quests: updatedQuestsArray // إرسال المصفوفة مباشرة كجذر داخل حقل الكائن ليتوافق مع الـ JSONB الفردي
             })
             .eq('id', userId);
         } catch (error) {
@@ -155,7 +149,7 @@ const QuestModal = ({ quest, allQuests, onClose, onStart, onComplete, onUpdatePr
         await supabase
           .from('profiles')
           .update({ 
-            Quests: { activeQuests: updatedQuestsArray } // تم التعديل إلى الحرف الكبير Quests
+            Quests: updatedQuestsArray
           })
           .eq('id', userId);
       }
@@ -181,7 +175,7 @@ const QuestModal = ({ quest, allQuests, onClose, onStart, onComplete, onUpdatePr
         await supabase
           .from('profiles')
           .update({ 
-            Quests: { activeQuests: updatedQuestsArray } // تم التعديل إلى الحرف الكبير Quests
+            Quests: updatedQuestsArray
           })
           .eq('id', userId);
       }
