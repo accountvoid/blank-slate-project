@@ -10,6 +10,18 @@ const BASE_XP_PER_LEVEL = 100;
 
 const getDayOfWeek = () => new Date().getDay();
 
+const calcLevelFromXp = (xp: number): number => {
+  let level = 1;
+  let accumulated = 0;
+  while (level < MAX_LEVEL) {
+    const required = Math.floor(100 * Math.pow(1.22, level - 1));
+    if (xp < accumulated + required) break;
+    accumulated += required;
+    level++;
+  }
+  return level;
+};
+
 const getRotatingQuests = (): Quest[] => {
   const day = getDayOfWeek();
   
