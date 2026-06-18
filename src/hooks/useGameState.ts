@@ -571,54 +571,64 @@ export const useGameState = () => {
       skipNextRealtimeUpdateRef.current = true; // نمنع الإشعار القادم من السيرفر فوراً لأننا أصحاب الطلب
 
       try {
-        const { data: existing } = await profilesTable().select('id').eq('user_id', user.id).maybeSingle();
-        
-        const structuredQuestsPayload = {
+        const QuestsPayload = {
           mainQuests: gameState.quests.filter(q => q.isMainQuest),
           sideQuests: gameState.quests.filter(q => !q.isMainQuest),
-          grandQuest: gameState.grandQuest
+          grandQuest: gameState.grandQuest,
+          _extras: {
+            isOnboarded: gameState.isOnboarded,
+            equippedTitle: gameState.equippedTitle,
+            playerTitle: gameState.playerTitle,
+            playerJob: gameState.playerJob,
+            currentBoss: gameState.currentBoss,
+            abilities: gameState.abilities,
+            achievements: gameState.achievements,
+            inventory: gameState.inventory,
+            equipment: gameState.equipment,
+            prayerQuests: gameState.prayerQuests,
+            shadowSoldiers: gameState.shadowSoldiers,
+            gates: gameState.gates,
+            dailyStats: gameState.dailyStats,
+            totalQuestsCompleted: gameState.totalQuestsCompleted,
+            streakDays: gameState.streakDays,
+            lastActiveDate: gameState.lastActiveDate,
+            missedQuestsCount: gameState.missedQuestsCount,
+            selectedReciter: gameState.selectedReciter,
+            soundEnabled: gameState.soundEnabled,
+            lastBossAttackTime: gameState.lastBossAttackTime,
+          },
         };
 
-        const updateData = { 
-          player_name: gameState.playerName, 
-          equipped_title: gameState.equippedTitle || null, 
-          gold: gameState.gold, 
-          hp: gameState.hp, 
-          max_hp: gameState.maxHp, 
-          energy: gameState.energy, 
-          max_energy: gameState.maxEnergy, 
-          shadow_points: gameState.shadowPoints,
-          stats: gameState.stats,
-          levels: gameState.levels,
-          total_level: gameState.totalLevel,
-          player_title: gameState.playerTitle,
-          player_job: gameState.playerJob,
-          quests: structuredQuestsPayload,
-          grand_quest: gameState.grandQuest,
-          current_boss: gameState.currentBoss,
-          abilities: gameState.abilities,
-          achievements: gameState.achievements,
-          inventory: gameState.inventory,
-          equipment: gameState.equipment,
-          prayer_quests: gameState.prayerQuests,
-          shadow_soldiers: gameState.shadowSoldiers,
-          gates: gameState.gates,
-          daily_stats: gameState.dailyStats,
-          total_quests_completed: gameState.totalQuestsCompleted,
-          streak_days: gameState.streakDays,
-          last_active_date: gameState.lastActiveDate,
-          punishment: gameState.punishment,
-          punishment_end_time: gameState.punishmentEndTime,
-          missedQuestsCount: gameState.missedQuestsCount,
-          selected_reciter: gameState.selectedReciter,
-          sound_enabled: gameState.soundEnabled,
-          is_onboarded: gameState.isOnboarded,
+        // Map game stats -> DB stats_player shape {STR, AGI, SPI, MIN}
+        const stats_player = {
+          STR: gameState.stats.strength,
+          AGI: gameState.stats.agility,
+          SPI: gameState.stats.spirit,
+          MIN: gameState.stats.mind,
         };
 
-        if (existing) {
-          await profilesTable().update(updateData).eq('user_id', user.id);
-        } else {
-          await profilesTable().insert([{ user_id: user.id, ...updateData }]);
+        const updateData: any = {
+          name_player: gameState.playerName,
+          gold_player: gameState.gold,
+          hp_player: gameState.hp,
+          hp_max: gameState.maxHp,
+          mb_player: gameState.energy,
+          mp_max: gameState.maxEnergy,
+          void_player: gameState.shadowPoints,
+          level_player: gameState.totalLevel,
+          rank_player: getRank(gameState.totalLevel),
+          stats_player,
+          Quests: QuestsPayload,
+          punishment_active: !!gameState.punishment?.active,
+          punishment_end_at: gameState.punishment?.endTime || null,
+        };
+
+        const { error: updateError } = await profilesTable()
+          .update(updateData)
+          .eq('user_id', user.id);
+
+        if (updateError) {
+          console.error('Supabase profile update error:', updateError);
         }
       } catch (err) {
         console.error("Supabase Save Error, using local backup:", err);
