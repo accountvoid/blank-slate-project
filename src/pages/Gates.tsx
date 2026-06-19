@@ -157,7 +157,7 @@ const Gates = () => {
     );
   }
 
-  if (profileLoading) {
+  if (profileLoading || gatesLoading) {
     return <LoadingScreen fullScreen message="GATES" />;
   }
 
