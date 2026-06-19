@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface PenaltyZoneScreenProps {
   endTime: string; 
@@ -7,6 +7,7 @@ interface PenaltyZoneScreenProps {
 
 export const PenaltyZoneScreen = ({ endTime, onTimeComplete }: PenaltyZoneScreenProps) => {
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     const calculateTime = () => {
@@ -15,7 +16,8 @@ export const PenaltyZoneScreen = ({ endTime, onTimeComplete }: PenaltyZoneScreen
       const remaining = Math.max(0, Math.floor((end - now) / 1000));
       setTimeRemaining(remaining);
       
-      if (remaining <= 0 && onTimeComplete) {
+      if (remaining <= 0 && onTimeComplete && !completedRef.current) {
+        completedRef.current = true;
         onTimeComplete();
       }
     };
@@ -71,7 +73,7 @@ export const PenaltyZoneScreen = ({ endTime, onTimeComplete }: PenaltyZoneScreen
         <div className="absolute top-[30%] left-0 right-0 z-50 flex flex-col items-center">
           
           {/* مجسم الشخص فوق الخط مباشرة */}
-          <div className="relative mb-[-4px]"> {/* جعل الشخص يلمس الخط تماماً */}
+          <div className="relative mb-[-4px]">
             <div className="relative w-12 h-20 flex flex-col items-center">
               {/* الرأس */}
               <div className="w-5 h-5 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)] mb-1" />
