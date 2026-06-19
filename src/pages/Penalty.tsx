@@ -1,7 +1,7 @@
 import { PenaltyZoneScreen } from '@/features/penalty/PenaltyZoneScreen';
 import { usePunishment } from '@/hooks/usePunishment';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const ROUND_TASKS = [
@@ -16,18 +16,17 @@ const TOTAL_ROUNDS = 4;
 
 const Penalty = () => {
   const navigate = useNavigate();
-  const { active, endAt, refresh } = usePunishment();
+  const { active, endAt, start, refresh } = usePunishment();
+  const started = useRef(false);
   const [now, setNow] = useState(Date.now());
 
-  // Punishment is now activated server-side (start_punishment / check_and_apply_punishment).
-  // The Penalty page is purely a display + countdown. If the user reaches here without
-  // an active punishment, send them home.
   useEffect(() => {
-    if (!active && !endAt) {
-      const t = setTimeout(() => navigate('/', { replace: true }), 200);
-      return () => clearTimeout(t);
-    }
-  }, [active, endAt, navigate]);
+    if (started.current) return;
+    if (active === true || endAt) return;
+
+    started.current = true;
+    start(4);
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -64,6 +63,7 @@ const Penalty = () => {
             <span className="text-[10px] tracking-[0.3em] text-red-400">PENALTY ZONE</span>
             <span className="text-[10px] tracking-[0.2em] text-red-300">{mm}:{ss}</span>
           </div>
+
           <div className="grid grid-cols-4 gap-1 mb-2">
             {Array.from({ length: TOTAL_ROUNDS }).map((_, i) => (
               <div
@@ -75,8 +75,10 @@ const Penalty = () => {
               />
             ))}
           </div>
+
           <div className="text-xs font-bold text-red-300">{task.title}</div>
           <div className="text-[11px] text-white/70 mt-1">{task.desc}</div>
+
           <div className="text-[10px] text-white/40 mt-2">
             Round {currentRound + 1} / {TOTAL_ROUNDS} — Fail to complete and the monster strikes.
           </div>
