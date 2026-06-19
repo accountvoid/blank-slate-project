@@ -38,7 +38,10 @@ const Penalty = () => {
     navigate('/');
   };
 
-  const endTime = endAt ?? new Date(Date.now() + 4 * ROUND_MS).toISOString();
+  const endTime = useMemo(() => {
+    return endAt ?? new Date(Date.now() + 4 * ROUND_MS).toISOString();
+  }, [endAt]);
+
   const endMs = new Date(endTime).getTime();
   const startMs = endMs - TOTAL_ROUNDS * ROUND_MS;
   const elapsed = Math.max(0, now - startMs);
