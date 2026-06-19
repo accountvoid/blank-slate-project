@@ -1,78 +1,143 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { Coins, Loader2, Shield, Zap, CheckCircle2 } from "lucide-react";
 
-const SETVOID_LOGO = "/SETVOIDUI.png";
-const WALLET_ADDRESS = "0xC87bc9D4F2f640Ad27cdEc62754A18A8CAea8231";
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
-const GoldPurchasePage = () => {
-  const [step, setStep] = useState(1); // 1: اختيار العرض، 2: الدفع
-  const [selectedOffer, setSelectedOffer] = useState<{ amount: string; price: string } | null>(null);
+const OFFERS = [
+  { gold: 1000, usd: 1 },
+  { gold: 5000, usd: 4 },
+  { gold: 15000, usd: 10 },
+  { gold: 50000, usd: 30 }
+];
 
-  const offers = [
-    { amount: "10g Gold", price: "$850" },
-    { amount: "50g Gold", price: "$4,200" },
-    { amount: "100g Gold", price: "$8,350" },
-  ];
+export default function GoldRecharge() {
+  const [loading, setLoading] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState("");
+  const [step, setStep] = useState<"offers" | "paying" | "done">("offers");
+
+  const playerId = "test123"; // اربطه مع gameState لاحقاً
+
+  const createPayment = async (offer: any) => {
+    try {
+      setLoading(true);
+      setStep("paying");
+
+      const { data, error } = await supabase.functions.invoke(
+        "create-payment",
+        {
+          body: {
+            id_player: playerId,
+            amount_usd: offer.usd,
+            gold_amount: offer.gold
+          }
+        }
+      );
+
+      if (error) throw error;
+
+      const url = data?.payment?.invoice_url || data?.payment?.pay_address;
+
+      setPaymentUrl(url);
+      setStep("done");
+    } catch (err: any) {
+      console.error(err);
+      alert("Payment failed");
+      setStep("offers");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 font-sans">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-gray-800 pb-6 mb-10">
-        <img src={SETVOID_LOGO} alt="SETVOID" className="h-12 w-auto" />
-        <span className="text-gray-500 text-sm font-mono tracking-widest">SYSTEM_VERSION: 1.0.0</span>
-      </header>
+    <div className="min-h-screen bg-black text-white flex flex-col items-center p-4">
 
-      {/* Main Content */}
-      <main className="max-w-2xl mx-auto border border-gray-800 p-8 bg-[#0a0a0a] rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-        {step === 1 ? (
-          <div>
-            <h2 className="text-2xl font-bold mb-6 text-yellow-500">اختر كمية الذهب المطلوبة</h2>
-            <div className="grid gap-4">
-              {offers.map((offer, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => { setSelectedOffer(offer); setStep(2); }}
-                  className="flex justify-between p-6 bg-gray-900 border border-gray-700 hover:border-yellow-500 transition-all rounded-lg"
-                >
-                  <span className="text-xl">{offer.amount}</span>
-                  <span className="font-mono text-yellow-400">{offer.price}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">طريقة الدفع</h2>
-            
-            {/* Payment Options */}
-            <div className="space-y-4">
-              {/* Crypto Option */}
-              <div className="p-6 bg-gray-900 border border-yellow-600 rounded-lg">
-                <h3 className="font-bold text-yellow-500 mb-2">العملات المشفرة (ERC20)</h3>
-                <p className="text-sm text-gray-400 mb-4">يرجى التحويل إلى العنوان التالي:</p>
-                <code className="block bg-black p-3 text-xs text-yellow-300 border border-gray-700 mb-4 break-all">
-                  {WALLET_ADDRESS}
-                </code>
-                <a 
-                  href="mailto:setvoid.app@gmail.com?subject=إثبات دفع - شراء ذهب&body=تم إرسال المبلغ. مرفق لقطة الشاشة."
-                  className="block w-full text-center py-3 bg-yellow-600 hover:bg-yellow-500 text-black font-bold rounded"
-                >
-                  إرسال إثبات الدفع (Email)
-                </a>
-              </div>
+      {/* HEADER */}
+      <div className="text-center mt-10 mb-8">
+        <div className="flex items-center justify-center gap-2 text-yellow-400">
+          <Coins className="w-8 h-8" />
+          <h1 className="text-2xl font-bold tracking-widest">GOLD EXCHANGE</h1>
+        </div>
+        <p className="text-gray-500 text-xs mt-2">
+          SETVOID Payment Gateway
+        </p>
+      </div>
 
-              {/* Bank Option (Locked) */}
-              <div className="p-6 bg-gray-950 border border-gray-800 rounded-lg opacity-50 cursor-not-allowed">
-                <h3 className="font-bold text-gray-500">التحويل البنكي</h3>
-                <p className="text-sm text-gray-600">هذه الخاصية غير مفعلة حالياً في نظام SETVOID</p>
+      {/* OFFERS */}
+      {step === "offers" && (
+        <div className="w-full max-w-md space-y-4">
+          {OFFERS.map((offer, i) => (
+            <div
+              key={i}
+              onClick={() => createPayment(offer)}
+              className="border border-yellow-500/30 p-4 cursor-pointer bg-yellow-500/5 hover:bg-yellow-500/10 transition"
+            >
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <Coins className="text-yellow-400" />
+                  <div>
+                    <p className="font-bold">{offer.gold} GOLD</p>
+                    <p className="text-xs text-gray-400">${offer.usd}</p>
+                  </div>
+                </div>
+
+                <Zap className="text-blue-400" />
               </div>
             </div>
-            <button onClick={() => setStep(1)} className="mt-6 text-gray-500 underline text-sm">رجوع</button>
+          ))}
+        </div>
+      )}
+
+      {/* LOADING */}
+      {step === "paying" && (
+        <div className="flex flex-col items-center mt-20">
+          <Loader2 className="w-10 h-10 animate-spin text-blue-400" />
+          <p className="text-sm mt-4 text-gray-400">
+            Creating payment gateway...
+          </p>
+        </div>
+      )}
+
+      {/* PAYMENT READY */}
+      {step === "done" && (
+        <div className="w-full max-w-md mt-10 space-y-4">
+          
+          <div className="p-4 border border-green-500/30 bg-green-500/5">
+            <div className="flex items-center gap-2 text-green-400">
+              <CheckCircle2 />
+              <p className="font-bold">Payment Created</p>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Complete payment to receive Gold instantly
+            </p>
           </div>
-        )}
-      </main>
+
+          {/* LINK */}
+          <a
+            href={paymentUrl}
+            target="_blank"
+            className="block text-center bg-blue-600 py-3 font-bold"
+          >
+            OPEN PAYMENT
+          </a>
+
+          <button
+            onClick={() => setStep("offers")}
+            className="w-full text-xs text-gray-400"
+          >
+            Back
+          </button>
+        </div>
+      )}
+
+      {/* FOOTER SYSTEM */}
+      <div className="mt-auto text-[10px] text-gray-600 mb-4 flex items-center gap-2">
+        <Shield className="w-3 h-3" />
+        SECURE SETVOID TRANSACTION LAYER
+      </div>
     </div>
   );
-};
-
-export default GoldPurchasePage;
-
+}
