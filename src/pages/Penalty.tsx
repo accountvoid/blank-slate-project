@@ -1,7 +1,7 @@
 import { PenaltyZoneScreen } from '@/features/penalty/PenaltyZoneScreen';
 import { usePunishment } from '@/hooks/usePunishment';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const ROUND_TASKS = [
