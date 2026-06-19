@@ -54,7 +54,10 @@ const Gates = () => {
   const totalLevel = gameState.totalLevel || 1;
   const playerPower = totalLevel;
 
-  const gates = gameState.gates || [];
+  // Source of truth = Supabase gates_catalog. Falls back to legacy gameState.gates
+  // only if catalog hook errored (e.g., migration not yet applied).
+  const { gates: catalogGates, loading: gatesLoading, error: gatesError } = useGatesCatalog(totalLevel);
+  const gates = gatesError ? (gameState.gates || []) : catalogGates;
 
   const hasManaGauge = gameState.inventory?.some(item => item.id === 'mana_meter' && item.quantity > 0);
 
