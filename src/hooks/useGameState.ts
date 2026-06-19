@@ -386,22 +386,11 @@ export const useGameState = () => {
           const today = new Date().toISOString().split('T')[0];
           const isNewDay = mergedState.lastActiveDate !== today;
 
-          if (isNewDay && mergedState.quests && mergedState.quests.length > 0) {
-            const hasUncompletedMainQuests = mergedState.quests.some((q: any) => q.isMainQuest && !q.completed);
-            if (hasUncompletedMainQuests) {
-              const nextHp = Math.max(0, mergedState.hp - 30);
-              mergedState.punishment = {
-                active: true,
-                endTime: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-                monstersDefeated: 0,
-                currentWave: 1,
-                playerHpInPenalty: nextHp,
-                maxHpInPenalty: mergedState.maxHp
-              };
-              mergedState.hp = nextHp;
-              mergedState.missedQuestsCount = (mergedState.missedQuestsCount || 0) + 1;
-            }
-          }
+          // NOTE: Punishment activation on missed daily quests is now enforced
+          // server-side by `check_and_apply_punishment(uid)` (called from App on
+          // startup + focus). The previous client-side block was removed to avoid
+          // partial HP loss, missing reason, and race conditions with the server.
+
 
           const needsQuestSeed = isNewDay || !mergedState.quests || mergedState.quests.length === 0;
           if (needsQuestSeed) {
