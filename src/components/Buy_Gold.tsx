@@ -14,14 +14,14 @@ const OFFERS = [
   { gold: 50000, usd: 30 }
 ];
 
-export default function GoldRecharge() {
+export default function Buy_Gold() {
   const [loading, setLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState("");
-  const [step, setStep] = useState<"offers" | "paying" | "done">("offers");
+  const [step, setStep] = useState("offers");
 
   const playerId = "test123"; // اربطه مع gameState لاحقاً
 
-  const createPayment = async (offer: any) => {
+  const createPayment = async (offer) => {
     try {
       setLoading(true);
       setStep("paying");
@@ -39,11 +39,14 @@ export default function GoldRecharge() {
 
       if (error) throw error;
 
-      const url = data?.payment?.invoice_url || data?.payment?.pay_address;
+      const url =
+        data?.payment?.invoice_url ||
+        data?.payment?.payment_url ||
+        data?.payment?.pay_address;
 
-      setPaymentUrl(url);
+      setPaymentUrl(url || "");
       setStep("done");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       alert("Payment failed");
       setStep("offers");
@@ -59,7 +62,9 @@ export default function GoldRecharge() {
       <div className="text-center mt-10 mb-8">
         <div className="flex items-center justify-center gap-2 text-yellow-400">
           <Coins className="w-8 h-8" />
-          <h1 className="text-2xl font-bold tracking-widest">GOLD EXCHANGE</h1>
+          <h1 className="text-2xl font-bold tracking-widest">
+            GOLD EXCHANGE
+          </h1>
         </div>
         <p className="text-gray-500 text-xs mt-2">
           SETVOID Payment Gateway
@@ -101,10 +106,10 @@ export default function GoldRecharge() {
         </div>
       )}
 
-      {/* PAYMENT READY */}
+      {/* DONE */}
       {step === "done" && (
         <div className="w-full max-w-md mt-10 space-y-4">
-          
+
           <div className="p-4 border border-green-500/30 bg-green-500/5">
             <div className="flex items-center gap-2 text-green-400">
               <CheckCircle2 />
@@ -115,10 +120,10 @@ export default function GoldRecharge() {
             </p>
           </div>
 
-          {/* LINK */}
           <a
             href={paymentUrl}
             target="_blank"
+            rel="noreferrer"
             className="block text-center bg-blue-600 py-3 font-bold"
           >
             OPEN PAYMENT
@@ -133,7 +138,7 @@ export default function GoldRecharge() {
         </div>
       )}
 
-      {/* FOOTER SYSTEM */}
+      {/* FOOTER */}
       <div className="mt-auto text-[10px] text-gray-600 mb-4 flex items-center gap-2">
         <Shield className="w-3 h-3" />
         SECURE SETVOID TRANSACTION LAYER
