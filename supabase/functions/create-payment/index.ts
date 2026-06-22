@@ -1,8 +1,8 @@
 // SETVOID — Create a NowPayments invoice for a Gold package.
 // POST { gold_amount, amount_usd, pay_currency } -> { invoice_url, payment_id }
-import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 import { z } from 'npm:zod@3.23.8';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const ALLOWED_OFFERS = [
   { gold: 1000,  usd: 1 },
@@ -26,33 +26,30 @@ Deno.serve(async (req) => {
     if (!authHeader?.startsWith('Bearer ')) {
       return json({ error: 'Unauthorized' }, 401);
     }
+    const jwt = authHeader.replace('Bearer ', '');
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: claims, error: cErr } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''));
-    if (cErr || !claims?.claims?.sub) return json({ error: 'Unauthorized' }, 401);
-    const userId = claims.claims.sub;
+    const { data: userData, error: uErr } = await supabase.auth.getUser(jwt);
+    if (uErr || !userData?.user?.id) return json({ error: 'Unauthorized' }, 401);
+    const userId = userData.user.id;
 
     const parsed = Body.safeParse(await req.json());
     if (!parsed.success) return json({ error: parsed.error.flatten().fieldErrors }, 400);
     const { gold_amount, amount_usd } = parsed.data;
     const pay_currency = parsed.data.pay_currency.toLowerCase();
 
-    // Enforce known offers — block tampering.
     const offer = ALLOWED_OFFERS.find(o => o.gold === gold_amount && o.usd === amount_usd);
     if (!offer) return json({ error: 'Invalid offer' }, 400);
 
     const apiKey = Deno.env.get('NOWPAYMENTS_API_KEY');
     if (!apiKey) return json({ error: 'Payment provider not configured' }, 500);
 
-    // Create a NowPayments invoice (hosted checkout) — simpler than payments API,
-    // and we still get IPN callbacks. https://documenter.getpostman.com/view/7907941/2s93JusNJt
     const projectUrl = Deno.env.get('SUPABASE_URL')!;
     const ipnUrl = `${projectUrl.replace(/\/$/, '')}/functions/v1/nowpayments-webhook`;
 
-    // Insert payment row FIRST so order_id ties webhook back to it.
     const service = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
