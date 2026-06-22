@@ -1,10 +1,9 @@
 // SETVOID — NowPayments IPN webhook.
 // Verifies HMAC-SHA512 signature, updates payment row, credits gold once on success.
-import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 import { createHmac } from 'node:crypto';
+import { corsHeaders } from '../_shared/cors.ts';
 
-// Public webhook — IPN signature replaces JWT auth.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return new Response('method not allowed', { status: 405 });
@@ -15,7 +14,6 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
   const signature = req.headers.get('x-nowpayments-sig') ?? '';
 
-  // NowPayments sorts the JSON keys alphabetically before HMAC.
   let payload: Record<string, unknown>;
   try { payload = JSON.parse(rawBody); } catch { return new Response('bad json', { status: 400 }); }
   const sortedString = JSON.stringify(sortObject(payload));
@@ -36,7 +34,6 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
-  // Reject duplicates by payment_id with a different order_id
   if (paymentId) {
     const { data: dup } = await service
       .from('payments').select('id, user_id').eq('nowpayments_payment_id', paymentId).maybeSingle();
