@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Coins, Loader2, Shield, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Coins, Loader2, Shield, CheckCircle2, ExternalLink, AlertTriangle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -24,12 +24,25 @@ const NETWORKS = [
 ] as const;
 
 type Network = typeof NETWORKS[number]['id'];
-type Step = 'offers' | 'network' | 'paying' | 'done' | 'error';
+type Step = 'offers' | 'network' | 'paying' | 'status' | 'error';
 
 interface Props {
   gold: number;
   compact?: boolean;
 }
+
+const STATUS_LABEL: Record<string, { label: string; tone: 'amber' | 'green' | 'red' | 'gray' }> = {
+  waiting:                          { label: 'Waiting for payment',     tone: 'amber' },
+  confirming:                       { label: 'Confirming on-chain',     tone: 'amber' },
+  confirmed:                        { label: 'Confirmed',               tone: 'green' },
+  sending:                          { label: 'Sending to wallet',       tone: 'amber' },
+  partially_paid:                   { label: 'Partially paid',          tone: 'amber' },
+  finished:                         { label: 'Completed — gold added!', tone: 'green' },
+  failed:                           { label: 'Payment failed',          tone: 'red'   },
+  refunded:                         { label: 'Refunded',                tone: 'red'   },
+  expired:                          { label: 'Invoice expired',         tone: 'red'   },
+  pending_payment_provider_failed:  { label: 'Provider unavailable',    tone: 'red'   },
+};
 
 export default function BuyGold({ gold, compact }: Props) {
   const { user } = useAuth();
@@ -38,34 +51,97 @@ export default function BuyGold({ gold, compact }: Props) {
   const [offer, setOffer] = useState<typeof OFFERS[number] | null>(null);
   const [network, setNetwork] = useState<Network>('usdttrc20');
   const [invoiceUrl, setInvoiceUrl] = useState('');
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<string>('waiting');
+  const [credited, setCredited] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [errorDetail, setErrorDetail] = useState('');
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = () => {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  };
 
   const reset = () => {
-    setStep('offers'); setOffer(null); setInvoiceUrl(''); setErrorMsg('');
+    stopPolling();
+    setStep('offers'); setOffer(null); setInvoiceUrl(''); setOrderId(null);
+    setPaymentStatus('waiting'); setCredited(false);
+    setErrorMsg(''); setErrorDetail('');
   };
+
+  // Realtime + polling fallback for status.
+  useEffect(() => {
+    if (step !== 'status' || !orderId) return;
+    const channel = supabase
+      .channel(`payments:${orderId}`)
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'payments', filter: `id=eq.${orderId}` },
+        (p: any) => {
+          if (p.new?.status) setPaymentStatus(p.new.status);
+          if (typeof p.new?.credited === 'boolean') setCredited(p.new.credited);
+        })
+      .subscribe();
+
+    pollRef.current = setInterval(async () => {
+      const { data } = await (supabase as any)
+        .from('payments')
+        .select('status, credited')
+        .eq('id', orderId)
+        .maybeSingle();
+      if (data) {
+        setPaymentStatus(data.status);
+        setCredited(!!data.credited);
+      }
+    }, 5000);
+
+    return () => { supabase.removeChannel(channel); stopPolling(); };
+  }, [step, orderId]);
 
   const submit = async () => {
     if (!offer || !user) return;
     setStep('paying');
+    setErrorMsg(''); setErrorDetail('');
     try {
+      const client_nonce = crypto.randomUUID();
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           gold_amount: offer.gold,
           amount_usd: offer.usd,
           pay_currency: network,
+          client_nonce,
         },
       });
-      if (error) throw new Error(error.message);
-      const url = (data as any)?.invoice_url;
-      if (!url) throw new Error('No invoice URL returned');
-      setInvoiceUrl(url);
-      setStep('done');
+
+      // Transport-level failure (network / function not deployed / CORS).
+      if (error) {
+        const detail = (data as any)?.error || (data as any)?.details || error.message;
+        throw new Error(detail || 'Edge Function unreachable');
+      }
+      const res = data as any;
+      if (!res?.success) {
+        setErrorDetail(typeof res?.details === 'string' ? res.details : JSON.stringify(res?.details ?? {}));
+        throw new Error(res?.error || 'Unknown server error');
+      }
+      if (!res.invoice_url) throw new Error('No invoice URL returned');
+
+      setInvoiceUrl(res.invoice_url);
+      setOrderId(res.order_id);
+      setPaymentStatus(res.payment?.status ?? 'waiting');
+      setStep('status');
+      if (res.warning) toast.info(res.warning);
     } catch (e) {
       setErrorMsg((e as Error).message || 'Payment failed');
       setStep('error');
       toast.error('فشل إنشاء عملية الدفع', { description: (e as Error).message });
     }
   };
+
+  const statusInfo = STATUS_LABEL[paymentStatus] ?? { label: paymentStatus, tone: 'gray' as const };
+  const toneClass =
+    statusInfo.tone === 'green' ? 'border-green-500/40 bg-green-500/10 text-green-300' :
+    statusInfo.tone === 'red'   ? 'border-red-500/40 bg-red-500/10 text-red-300' :
+    statusInfo.tone === 'amber' ? 'border-yellow-500/40 bg-yellow-500/10 text-yellow-300' :
+                                  'border-white/15 bg-white/5 text-gray-300';
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
@@ -160,26 +236,36 @@ export default function BuyGold({ gold, compact }: Props) {
           </div>
         )}
 
-        {step === 'done' && (
+        {step === 'status' && (
           <div className="space-y-4">
-            <div className="rounded border border-green-500/30 bg-green-500/5 p-3">
-              <div className="flex items-center gap-2 text-green-400">
-                <CheckCircle2 className="h-4 w-4" />
-                <p className="text-sm font-bold">Invoice Created</p>
+            <div className={cn('rounded border p-3', toneClass)}>
+              <div className="flex items-center gap-2">
+                {statusInfo.tone === 'green' ? <CheckCircle2 className="h-4 w-4" />
+                  : statusInfo.tone === 'red' ? <AlertTriangle className="h-4 w-4" />
+                  : <Clock className="h-4 w-4 animate-pulse" />}
+                <p className="text-sm font-bold">{statusInfo.label}</p>
               </div>
-              <p className="mt-1 text-xs text-gray-400">
-                Open the payment page, send the exact USDT amount, and gold will be credited
-                automatically once the transaction is confirmed on-chain.
+              <p className="mt-1 text-xs opacity-80">
+                Order ID: <span className="font-mono">{orderId?.slice(0, 8)}…</span>
+                {credited && ' · gold credited ✓'}
               </p>
             </div>
-            <a
-              href={invoiceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex w-full items-center justify-center gap-2 rounded bg-yellow-500 py-3 text-sm font-bold text-black hover:bg-yellow-400"
-            >
-              <ExternalLink className="h-4 w-4" /> Open Payment Page
-            </a>
+
+            {invoiceUrl && !['finished','confirmed','failed','expired','refunded'].includes(paymentStatus) && (
+              <a
+                href={invoiceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded bg-yellow-500 py-3 text-sm font-bold text-black hover:bg-yellow-400"
+              >
+                <ExternalLink className="h-4 w-4" /> Open Payment Page
+              </a>
+            )}
+
+            <p className="text-center text-[11px] text-gray-500">
+              This screen updates automatically once the transaction confirms on-chain.
+            </p>
+
             <button onClick={() => setOpen(false)} className="w-full text-xs text-gray-500 hover:text-gray-300">
               Close
             </button>
@@ -189,7 +275,14 @@ export default function BuyGold({ gold, compact }: Props) {
         {step === 'error' && (
           <div className="space-y-3">
             <div className="rounded border border-red-500/40 bg-red-500/5 p-3 text-sm text-red-300">
-              {errorMsg}
+              <div className="flex items-center gap-2 font-bold">
+                <AlertTriangle className="h-4 w-4" /> {errorMsg}
+              </div>
+              {errorDetail && (
+                <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap text-[11px] text-red-200/80">
+                  {errorDetail}
+                </pre>
+              )}
             </div>
             <Button variant="outline" className="w-full" onClick={reset}>Try again</Button>
           </div>
