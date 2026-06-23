@@ -83,7 +83,7 @@ export default function BuyGold({ gold, compact }: Props) {
       .subscribe();
 
     pollRef.current = setInterval(async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('payments')
         .select('status, credited')
         .eq('id', orderId)
