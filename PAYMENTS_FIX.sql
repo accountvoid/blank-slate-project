@@ -1,11 +1,15 @@
 -- ============================================================
 -- SETVOID — Clean Payments fix (run in Supabase SQL Editor)
--- Resolves: "user_id not found" / RLS INSERT failures on gold top-up.
--- Safe to re-run (idempotent).
+-- Resolves: "column user_id does not exist" — the old payments table
+-- was created with a different schema. We drop and recreate cleanly.
+-- Safe to re-run.
 -- ============================================================
 
--- 1) Table (create if missing — won't touch existing rows).
-CREATE TABLE IF NOT EXISTS public.payments (
+-- 0) Drop the broken/legacy table (no production data yet).
+DROP TABLE IF EXISTS public.payments CASCADE;
+
+-- 1) Recreate cleanly.
+CREATE TABLE public.payments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   nowpayments_invoice_id text UNIQUE,
@@ -24,24 +28,15 @@ CREATE TABLE IF NOT EXISTS public.payments (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- 2) Backfill columns / constraints on pre-existing tables.
-ALTER TABLE public.payments
-  ADD COLUMN IF NOT EXISTS provider text NOT NULL DEFAULT 'nowpayments';
-ALTER TABLE public.payments ALTER COLUMN user_id SET NOT NULL;
+CREATE INDEX idx_payments_user   ON public.payments(user_id);
+CREATE INDEX idx_payments_status ON public.payments(status);
 
-CREATE INDEX IF NOT EXISTS idx_payments_user   ON public.payments(user_id);
-CREATE INDEX IF NOT EXISTS idx_payments_status ON public.payments(status);
-
--- 3) Grants — Data API requires these in addition to RLS.
+-- 2) Grants — Data API requires these in addition to RLS.
 GRANT SELECT, INSERT, UPDATE ON public.payments TO authenticated;
 GRANT ALL ON public.payments TO service_role;
 
--- 4) RLS — full CRUD policy set keyed on auth.uid().
+-- 3) RLS — full CRUD policy set keyed on auth.uid().
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS payments_select_own ON public.payments;
-DROP POLICY IF EXISTS payments_insert_own ON public.payments;
-DROP POLICY IF EXISTS payments_update_own ON public.payments;
 
 CREATE POLICY payments_select_own ON public.payments
   FOR SELECT TO authenticated
@@ -56,18 +51,17 @@ CREATE POLICY payments_update_own ON public.payments
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 
--- 5) updated_at trigger (reuse helper if it exists).
+-- 4) updated_at trigger.
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_payments_updated_at ON public.payments;
 CREATE TRIGGER trg_payments_updated_at
   BEFORE UPDATE ON public.payments
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
--- 6) Realtime so the status screen subscription works.
+-- 5) Realtime for live status updates.
 DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_publication_tables
@@ -78,7 +72,7 @@ DO $$ BEGIN
 END $$;
 ALTER TABLE public.payments REPLICA IDENTITY FULL;
 
--- 7) Service-role RPC: atomically credit gold on confirmed payment.
+-- 6) Service-role RPC: atomically credit gold when payment confirmed.
 CREATE OR REPLACE FUNCTION public.credit_payment_gold(payment_id uuid)
 RETURNS public.payments
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
