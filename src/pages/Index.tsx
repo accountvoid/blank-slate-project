@@ -292,66 +292,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Header with Burger Menu */}
-      <header className="sticky top-0 z-40 flex justify-end items-center p-4 gap-2">
-        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-          <SheetTrigger asChild>
-            <button className="p-2 hover:bg-primary/10 rounded-lg transition-all">
-              <Menu className="w-6 h-6 text-primary" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-72 bg-card/95 border-l border-primary/30 p-0">
-            <SheetHeader className="p-4 border-b border-primary/20">
-              <SheetTitle className="text-sm font-bold tracking-[0.15em] uppercase text-primary text-right">
-                {t('index.menuTitle')}
-              </SheetTitle>
-            </SheetHeader>
-            
-            <ScrollArea className="flex-1 p-3">
-              <nav className="space-y-2">
-                {menuItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.key}
-                      to={item.path}
-                      onClick={() => setMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg border transition-all group",
-                        item.borderColor,
-                        item.bgColor,
-                        "hover:scale-[1.02]"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg border flex items-center justify-center",
-                        item.borderColor,
-                        item.bgColor
-                      )}>
-                        <Icon className={cn("w-5 h-5", item.color)} />
-                      </div>
-                      <div className="flex-1 text-right">
-                        <p className={cn("font-bold text-sm", item.color)}>{item.label}</p>
-                        <p className="text-[10px] text-muted-foreground">{item.labelEn}</p>
-                      </div>
-                      <ChevronRight className={cn("w-4 h-4", item.color, "rotate-180")} />
-                    </Link>
-                  );
-                })}
-              </nav>
-            </ScrollArea>
-
-            {/* Player Info Mini */}
-            <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-primary/20 bg-card/90">
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground">{t('common.totalLevel')}</p>
-                <p className="text-2xl font-black text-primary">{gameState.totalLevel}</p>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </header>
-
       {/* System Notifications */}
       {showNewQuestNotification && (
         <SystemNotification 
@@ -372,6 +312,7 @@ const Index = () => {
           onClose={() => setSystemMessage(null)}
         />
       )}
+
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <ProfileCard 
