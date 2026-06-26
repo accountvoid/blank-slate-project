@@ -45,6 +45,26 @@ const STATUS_LABEL: Record<string, { label: string; tone: 'amber' | 'green' | 'r
   pending_payment_provider_failed:  { label: 'Provider unavailable',    tone: 'red'   },
 };
 
+const readFunctionError = async (error: any, data: unknown) => {
+  const body = data as any;
+  if (body?.error || body?.details) {
+    return [
+      body.error,
+      typeof body.details === 'string' ? body.details : JSON.stringify(body.details ?? {}),
+    ].filter(Boolean).join(' — ');
+  }
+
+  const response = error?.context;
+  if (response && typeof response.clone === 'function') {
+    try {
+      const text = await response.clone().text();
+      if (text) return text;
+    } catch {}
+  }
+
+  return error?.message || 'تعذر الاتصال بدالة الشحن';
+};
+
 export default function BuyGold({ gold, compact }: Props) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -120,7 +140,7 @@ export default function BuyGold({ gold, compact }: Props) {
 
       // Transport-level failure (network / function not deployed / CORS).
       if (error) {
-        const detail = (data as any)?.error || (data as any)?.details || error.message;
+        const detail = await readFunctionError(error, data);
         throw new Error(detail || 'Edge Function unreachable');
       }
       const res = data as any;

@@ -14,159 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      gates: {
+      payments: {
         Row: {
-          battle_sessions: Json
+          amount_usd: number
           created_at: string
+          credited: boolean
+          credited_at: string | null
+          gold_amount: number
           id: string
-          id_gate: string
-          name_gate: string
-          power_gate: number
-          rank_gate: string
-          rewards_log: Json
-          stats: Json
+          nowpayments_invoice_id: string | null
+          nowpayments_payment_id: string | null
+          pay_address: string | null
+          pay_amount: number | null
+          pay_currency: string
+          provider: string
+          raw_payload: Json
+          status: string
+          tx_hash: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          battle_sessions?: Json
+          amount_usd: number
           created_at?: string
+          credited?: boolean
+          credited_at?: string | null
+          gold_amount: number
           id?: string
-          id_gate: string
-          name_gate: string
-          power_gate?: number
-          rank_gate?: string
-          rewards_log?: Json
-          stats?: Json
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          battle_sessions?: Json
-          created_at?: string
-          id?: string
-          id_gate?: string
-          name_gate?: string
-          power_gate?: number
-          rank_gate?: string
-          rewards_log?: Json
-          stats?: Json
+          nowpayments_invoice_id?: string | null
+          nowpayments_payment_id?: string | null
+          pay_address?: string | null
+          pay_amount?: number | null
+          pay_currency: string
+          provider?: string
+          raw_payload?: Json
+          status?: string
+          tx_hash?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
-      }
-      portals: {
-        Row: {
-          active: boolean
-          color: string
-          created_at: string
-          danger: string
-          energy_density: string
-          id: string
-          id_portal: string
-          name: string
-          rank: string
-          required_level: number
-          required_power: number
-          rewards: Json
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          color?: string
-          created_at?: string
-          danger?: string
-          energy_density?: string
-          id?: string
-          id_portal: string
-          name: string
-          rank?: string
-          required_level?: number
-          required_power?: number
-          rewards?: Json
-          updated_at?: string
-        }
         Update: {
-          active?: boolean
-          color?: string
+          amount_usd?: number
           created_at?: string
-          danger?: string
-          energy_density?: string
+          credited?: boolean
+          credited_at?: string | null
+          gold_amount?: number
           id?: string
-          id_portal?: string
-          name?: string
-          rank?: string
-          required_level?: number
-          required_power?: number
-          rewards?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          gold_player: number
-          hp_last_tick_at: string
-          hp_max: number
-          hp_player: number
-          id_player: string
-          level_player: number
-          mb_player: number
-          mp_max: number
-          name_player: string
-          punishment_active: boolean
-          punishment_end_at: string | null
-          punishment_started_at: string | null
-          Quests: Json
-          rank_player: string
-          stats_player: Json
-          updated_at: string
-          user_id: string
-          void_player: number
-        }
-        Insert: {
-          created_at?: string
-          gold_player?: number
-          hp_last_tick_at?: string
-          hp_max?: number
-          hp_player?: number
-          id_player: string
-          level_player?: number
-          mb_player?: number
-          mp_max?: number
-          name_player?: string
-          punishment_active?: boolean
-          punishment_end_at?: string | null
-          punishment_started_at?: string | null
-          Quests?: Json
-          rank_player?: string
-          stats_player?: Json
-          updated_at?: string
-          user_id: string
-          void_player?: number
-        }
-        Update: {
-          created_at?: string
-          gold_player?: number
-          hp_last_tick_at?: string
-          hp_max?: number
-          hp_player?: number
-          id_player?: string
-          level_player?: number
-          mb_player?: number
-          mp_max?: number
-          name_player?: string
-          punishment_active?: boolean
-          punishment_end_at?: string | null
-          punishment_started_at?: string | null
-          Quests?: Json
-          rank_player?: string
-          stats_player?: Json
+          nowpayments_invoice_id?: string | null
+          nowpayments_payment_id?: string | null
+          pay_address?: string | null
+          pay_amount?: number | null
+          pay_currency?: string
+          provider?: string
+          raw_payload?: Json
+          status?: string
+          tx_hash?: string | null
           updated_at?: string
           user_id?: string
-          void_player?: number
         }
         Relationships: []
       }
@@ -175,122 +79,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      apply_damage: {
-        Args: { hp_delta: number; mp_delta: number; uid: string }
+      credit_payment_gold: {
+        Args: { payment_id: string }
         Returns: {
+          amount_usd: number
           created_at: string
-          gold_player: number
-          hp_last_tick_at: string
-          hp_max: number
-          hp_player: number
-          id_player: string
-          level_player: number
-          mb_player: number
-          mp_max: number
-          name_player: string
-          punishment_active: boolean
-          punishment_end_at: string | null
-          punishment_started_at: string | null
-          Quests: Json
-          rank_player: string
-          stats_player: Json
+          credited: boolean
+          credited_at: string | null
+          gold_amount: number
+          id: string
+          nowpayments_invoice_id: string | null
+          nowpayments_payment_id: string | null
+          pay_address: string | null
+          pay_amount: number | null
+          pay_currency: string
+          provider: string
+          raw_payload: Json
+          status: string
+          tx_hash: string | null
           updated_at: string
           user_id: string
-          void_player: number
         }
         SetofOptions: {
           from: "*"
-          to: "profiles"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      apply_punishment_drain: {
-        Args: { uid: string }
-        Returns: {
-          created_at: string
-          gold_player: number
-          hp_last_tick_at: string
-          hp_max: number
-          hp_player: number
-          id_player: string
-          level_player: number
-          mb_player: number
-          mp_max: number
-          name_player: string
-          punishment_active: boolean
-          punishment_end_at: string | null
-          punishment_started_at: string | null
-          Quests: Json
-          rank_player: string
-          stats_player: Json
-          updated_at: string
-          user_id: string
-          void_player: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "profiles"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      start_punishment: {
-        Args: { hours?: number; uid: string }
-        Returns: {
-          created_at: string
-          gold_player: number
-          hp_last_tick_at: string
-          hp_max: number
-          hp_player: number
-          id_player: string
-          level_player: number
-          mb_player: number
-          mp_max: number
-          name_player: string
-          punishment_active: boolean
-          punishment_end_at: string | null
-          punishment_started_at: string | null
-          Quests: Json
-          rank_player: string
-          stats_player: Json
-          updated_at: string
-          user_id: string
-          void_player: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "profiles"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      update_quests: {
-        Args: { quests_json: Json; uid: string }
-        Returns: {
-          created_at: string
-          gold_player: number
-          hp_last_tick_at: string
-          hp_max: number
-          hp_player: number
-          id_player: string
-          level_player: number
-          mb_player: number
-          mp_max: number
-          name_player: string
-          punishment_active: boolean
-          punishment_end_at: string | null
-          punishment_started_at: string | null
-          Quests: Json
-          rank_player: string
-          stats_player: Json
-          updated_at: string
-          user_id: string
-          void_player: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "profiles"
+          to: "payments"
           isOneToOne: true
           isSetofReturn: false
         }

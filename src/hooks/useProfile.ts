@@ -38,7 +38,7 @@ export const useProfile = () => {
 
     const fetchProfile = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
@@ -62,7 +62,7 @@ export const useProfile = () => {
   const updateProfile = async (updates: Partial<Omit<Profile, 'user_id' | 'created_at' | 'updated_at' | 'id_player'>>) => {
     if (!user) return { error: new Error('Not authenticated') };
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('profiles')
       .update(updates as never)
       .eq('user_id', user.id)

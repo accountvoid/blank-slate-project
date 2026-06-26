@@ -47,7 +47,7 @@ export const PlayerSearchModal = ({ open, onOpenChange }: PlayerSearchModalProps
 
     setIsSearching(true);
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('profiles')
       .select('user_id, id_player, name_player, created_at')
       .eq('id_player', searchQuery.trim().toUpperCase())

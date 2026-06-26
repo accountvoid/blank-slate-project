@@ -113,7 +113,7 @@ export const useGatesCatalog = (playerLevel: number) => {
 
   const load = useCallback(async () => {
     try {
-      const { data, error } = await (supabase.from('gates_catalog' as any) as any)
+      const { data, error } = await (supabase as any).from('gates_catalog')
         .select('*')
         .order('required_level', { ascending: true });
       if (error) {
