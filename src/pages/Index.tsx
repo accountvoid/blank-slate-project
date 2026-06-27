@@ -19,6 +19,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
+import { AdBanner } from '@/components/ads/AdBanner';
 
 const Index = () => {
   const navigate = useNavigate();
