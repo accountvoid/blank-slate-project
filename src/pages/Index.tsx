@@ -322,6 +322,11 @@ const Index = () => {
           onUpdateProfile={updatePlayerInfo}
         />
 
+        {/* Sponsored banner (dynamic from Supabase, hidden when no active ad) */}
+        <AdBanner placement="home" />
+
+
+
         {/* Daily Quest Card */}
         <section>
           <SoloLevelingQuestCard
