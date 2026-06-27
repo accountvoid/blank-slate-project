@@ -8,8 +8,18 @@ import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import type { Quest, StatType } from '@/types';
+import { useAds, type AdCategory } from '@/hooks/useAds';
+import { SponsoredMissionCard } from '@/components/ads/SponsoredMissionCard';
 
 type QuestTab = 'all' | StatType;
+
+// Maps the in-game StatType to the ad category enum
+const STAT_TO_AD_CATEGORY: Record<StatType, AdCategory> = {
+  strength: 'strength',
+  mind: 'mind',
+  spirit: 'spirit',
+  agility: 'agility',
+};
 
 const Quests = () => {
   const { gameState, startSideQuest, claimSideQuest, closeSideQuest } = useGameState();
