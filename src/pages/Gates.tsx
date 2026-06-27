@@ -6,7 +6,7 @@ import { useGatesCatalog } from '@/hooks/useGatesCatalog';
 import { BottomNav } from '@/components/BottomNav';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { GateLootModal, generateGateLoot, LootItem } from '@/components/GateLootModal';
-import { AlertTriangle, Zap, Target, Clock, X, Skull, Activity, Scan, Shield, Map as MapIcon, LocateFixed, Compass, Footprints } from 'lucide-react';
+import { AlertTriangle, Zap, Target, Clock, X, Skull, Activity, Scan, Shield, Map as MapIcon, LocateFixed, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Gate } from '@/types/game';
@@ -167,17 +167,13 @@ const Gates = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(76,29,149,0.15),transparent_80%)]" />
       </div>
 
-      <header className="relative z-20 pt-16 pb-8 px-6 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-cyan-300/40 bg-cyan-400/10 shadow-[0_0_30px_rgba(34,211,238,0.25)]">
-          <Compass className="h-6 w-6 text-cyan-200" />
-        </div>
+      <header className="relative z-20 pt-16 pb-12 px-6 text-center border-b border-white/5">
         <h1 className="relative text-3xl font-black italic tracking-[0.3em] uppercase">
           <span className="text-white drop-shadow-[0_0_100px_rgba(255,255,255,0.5)]">{t('gates.dungeon')}</span>
-          <span className="block text-xs text-cyan-300 mt-2 tracking-[0.5em] font-bold uppercase opacity-80">{t('gates.subtitle')}</span>
+          <span className="block text-xs text-blue-400 mt-2 tracking-[0.5em] font-bold uppercase opacity-70">{t('gates.subtitle')}</span>
         </h1>
-        <div className="mx-auto mt-5 flex w-fit items-center gap-3 border border-cyan-300/20 bg-black/40 px-4 py-2 text-xs text-slate-300 shadow-[0_0_30px_rgba(8,145,178,0.12)]">
-          <MapIcon className="h-4 w-4 text-cyan-300" />
-          <span>{t('gates.availableToday')}: <b className="text-white">{gates.length}</b></span>
+        <div className="mt-4 text-sm text-slate-400">
+          {t('gates.availableToday')}: <span className="text-white font-bold">{gates.length}</span>
         </div>
       </header>
 
@@ -188,10 +184,7 @@ const Gates = () => {
           <p className="text-sm text-slate-500">{t('gates.empty.subtitle')}</p>
         </div>
       ) : (
-        <main className="relative z-10 mx-auto mt-8 max-w-3xl px-4 pb-12">
-          <div className="pointer-events-none absolute left-1/2 top-6 h-[calc(100%-4rem)] w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-cyan-300/40 to-transparent shadow-[0_0_30px_rgba(34,211,238,0.35)]" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-full opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(34,211,238,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.12) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-          <div className="space-y-28">
+        <main className="relative z-10 px-6 space-y-40 mt-16">
           {gates.map((gate, idx) => (
             <GateCard
               key={gate.id}
@@ -205,7 +198,6 @@ const Gates = () => {
               t={t}
             />
           ))}
-          </div>
         </main>
       )}
 
@@ -244,8 +236,6 @@ const Gates = () => {
         @keyframes loading { from { width: 0%; } to { width: 100%; } }
         @keyframes crack-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
         @keyframes blood-drip { 0% { transform: scaleY(0); opacity: 0; } 50% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0.3; } }
-        @keyframes gate-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes path-pulse { 0%, 100% { opacity: .35; transform: scale(.95); } 50% { opacity: 1; transform: scale(1.08); } }
       `}} />
     </div>
   );
@@ -269,20 +259,13 @@ const GateCard = ({ gate, index, onGateClick, getGateGlow, getGateBorderColor, g
   const gateNum = gate.gateNumber || (index + 1);
 
   return (
-    <div className={cn("relative group flex items-center", index % 2 === 0 ? "justify-start" : "justify-end")}>
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-200/60 bg-cyan-300/20 shadow-[0_0_20px_rgba(34,211,238,0.55)] animate-[path-pulse_2.6s_ease-in-out_infinite]" />
-      <div className={cn("pointer-events-none absolute top-1/2 h-px w-24 bg-gradient-to-r from-cyan-300/70 to-transparent", index % 2 === 0 ? "left-1/2" : "right-1/2 rotate-180")} />
-
-      <div className="relative w-[min(82vw,340px)]">
-        <div className={cn("absolute top-8 z-30 flex items-center gap-2 border border-cyan-300/20 bg-black/70 px-3 py-1 text-[10px] font-black uppercase text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.16)]", index % 2 === 0 ? "right-0" : "left-0")}>
-          <Footprints className="h-3 w-3" /> NODE {String(index + 1).padStart(2, '0')}
-        </div>
+    <div className="relative group flex flex-col items-center max-w-sm mx-auto">
       {/* Portal */}
       <div
         onClick={() => !isBroken && onGateClick(gate)}
         className={cn(
-          "relative mx-auto flex h-72 w-72 items-center justify-center transition-all duration-500 z-20 animate-[gate-float_5s_ease-in-out_infinite]",
-          isBroken ? "cursor-not-allowed opacity-40 grayscale" : "cursor-pointer hover:scale-105 active:scale-95"
+          "relative w-72 h-72 flex items-center justify-center transition-all duration-500 z-20",
+          isBroken ? "cursor-not-allowed opacity-40 grayscale" : "cursor-pointer hover:scale-110 active:scale-90"
         )}
         style={{ filter: isBroken ? 'grayscale(1) brightness(0.3)' : `drop-shadow(${getGateGlow(gate.rank)})` }}
       >
@@ -299,9 +282,9 @@ const GateCard = ({ gate, index, onGateClick, getGateGlow, getGateBorderColor, g
         </div>
       </div>
 
-      {/* Info Panel */}
+      {/* Info Card */}
       <div className={cn(
-        "relative z-10 -mt-8 w-full border-2 p-5 backdrop-blur-md",
+        "relative w-full p-5 mt-10 z-10 border-2",
         isBroken
           ? "bg-red-950/40 border-red-700/60 shadow-[0_0_40px_rgba(220,38,38,0.3)]"
           : "bg-black/60 border-slate-200/90 shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
@@ -411,7 +394,6 @@ const GateCard = ({ gate, index, onGateClick, getGateGlow, getGateBorderColor, g
             )}
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
