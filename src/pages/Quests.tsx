@@ -35,6 +35,11 @@ const Quests = () => {
   // Track quests being claimed with animation
   const [claimingQuests, setClaimingQuests] = useState<Set<string>>(new Set());
 
+  // Sponsored missions from Supabase (filtered by current tab category)
+  const adCategory: AdCategory | undefined =
+    activeTab === 'all' ? undefined : STAT_TO_AD_CATEGORY[activeTab as StatType];
+  const { ads: sponsoredAds } = useAds({ type: 'sponsored_mission', category: adCategory });
+
   const handleOpenDetails = (quest: Quest) => {
     setSelectedQuest(quest);
     setTimeout(() => setIsVisible(true), 50);
