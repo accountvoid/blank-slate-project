@@ -30,6 +30,30 @@ const AdminSettings = lazy(() => import("./pages/admin/SettingsPage"));
 const AdminPayments = lazy(() => import("./pages/admin/PaymentsPage"));
 const AdminCrud = lazy(() => import("./pages/admin/CrudPage"));
 
+import {
+  mainQuestsConfig,
+  sideQuestsConfig,
+  grandQuestsConfig,
+  adminGatesConfig,
+  mainItemsConfig,
+  sideItemsConfig,
+  eventsConfig,
+} from "./pages/admin/configs";
+
+const CRUD_CONFIGS = {
+  main: mainQuestsConfig,
+  side: sideQuestsConfig,
+  grand: grandQuestsConfig,
+  gates: adminGatesConfig,
+  mainItems: mainItemsConfig,
+  sideItems: sideItemsConfig,
+  events: eventsConfig,
+} as const;
+
+const AdminCrudRoute = ({ name }: { name: keyof typeof CRUD_CONFIGS }) => (
+  <AdminCrud config={CRUD_CONFIGS[name]} />
+);
+
 // Lazy chunks — preloaded on idle after auth.
 const Quests = lazy(() => import("./pages/Quests"));
 const Gates = lazy(() => import("./pages/Gates"));
