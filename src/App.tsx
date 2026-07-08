@@ -18,6 +18,17 @@ import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
+
+// Admin (lazy)
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/UsersPage"));
+const AdminRoles = lazy(() => import("./pages/admin/RolesPage"));
+const AdminAudit = lazy(() => import("./pages/admin/AuditLogsPage"));
+const AdminSettings = lazy(() => import("./pages/admin/SettingsPage"));
+const AdminPayments = lazy(() => import("./pages/admin/PaymentsPage"));
+const AdminCrud = lazy(() => import("./pages/admin/CrudPage"));
 
 // Lazy chunks — preloaded on idle after auth.
 const Quests = lazy(() => import("./pages/Quests"));
