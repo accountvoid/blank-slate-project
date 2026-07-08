@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_gates: {
+        Row: {
+          background: string | null
+          close_time: string | null
+          cooldown_minutes: number
+          created_at: string
+          description: string | null
+          difficulty: string
+          drops: Json
+          enabled: boolean
+          id: string
+          image: string | null
+          name: string
+          open_time: string | null
+          rank: string
+          required_level: number
+          rewards: Json
+          updated_at: string
+        }
+        Insert: {
+          background?: string | null
+          close_time?: string | null
+          cooldown_minutes?: number
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          drops?: Json
+          enabled?: boolean
+          id?: string
+          image?: string | null
+          name: string
+          open_time?: string | null
+          rank?: string
+          required_level?: number
+          rewards?: Json
+          updated_at?: string
+        }
+        Update: {
+          background?: string | null
+          close_time?: string | null
+          cooldown_minutes?: number
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          drops?: Json
+          enabled?: boolean
+          id?: string
+          image?: string | null
+          name?: string
+          open_time?: string | null
+          rank?: string
+          required_level?: number
+          rewards?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          ip: string | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          banner: string | null
+          created_at: string
+          description: string | null
+          enabled: boolean
+          end_date: string
+          id: string
+          image: string | null
+          name: string
+          rewards: Json
+          rules: Json
+          start_date: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          banner?: string | null
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          end_date: string
+          id?: string
+          image?: string | null
+          name: string
+          rewards?: Json
+          rules?: Json
+          start_date: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          banner?: string | null
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          end_date?: string
+          id?: string
+          image?: string | null
+          name?: string
+          rewards?: Json
+          rules?: Json
+          start_date?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       gates: {
         Row: {
           battle_sessions: Json
@@ -53,6 +197,171 @@ export type Database = {
           stats?: Json
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      grand_quests: {
+        Row: {
+          banner: string | null
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          image: string | null
+          is_active: boolean
+          name: string
+          priority: number
+          rewards: Json
+          start_date: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          banner?: string | null
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name: string
+          priority?: number
+          rewards?: Json
+          start_date: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          banner?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name?: string
+          priority?: number
+          rewards?: Json
+          start_date?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
+      main_items: {
+        Row: {
+          buy_price: number
+          category: string
+          created_at: string
+          description: string | null
+          drop_rate: number
+          duration: number | null
+          effect: Json
+          id: string
+          image: string | null
+          is_active: boolean
+          name: string
+          rarity: string
+          sell_price: number
+          stackable: boolean
+          tradable: boolean
+          updated_at: string
+        }
+        Insert: {
+          buy_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          drop_rate?: number
+          duration?: number | null
+          effect?: Json
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name: string
+          rarity?: string
+          sell_price?: number
+          stackable?: boolean
+          tradable?: boolean
+          updated_at?: string
+        }
+        Update: {
+          buy_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          drop_rate?: number
+          duration?: number | null
+          effect?: Json
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name?: string
+          rarity?: string
+          sell_price?: number
+          stackable?: boolean
+          tradable?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      main_quests: {
+        Row: {
+          category: string
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          difficulty: string
+          estimated_minutes: number
+          gold_reward: number
+          id: string
+          is_active: boolean
+          rewards: Json
+          steps: Json
+          title_ar: string
+          title_en: string
+          updated_at: string
+          warning_ar: string | null
+          warning_en: string | null
+          xp_reward: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          difficulty?: string
+          estimated_minutes?: number
+          gold_reward?: number
+          id?: string
+          is_active?: boolean
+          rewards?: Json
+          steps?: Json
+          title_ar: string
+          title_en: string
+          updated_at?: string
+          warning_ar?: string | null
+          warning_en?: string | null
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          difficulty?: string
+          estimated_minutes?: number
+          gold_reward?: number
+          id?: string
+          is_active?: boolean
+          rewards?: Json
+          steps?: Json
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+          warning_ar?: string | null
+          warning_en?: string | null
+          xp_reward?: number
         }
         Relationships: []
       }
@@ -239,11 +548,171 @@ export type Database = {
         }
         Relationships: []
       }
+      side_items: {
+        Row: {
+          buy_price: number
+          category: string
+          created_at: string
+          description: string | null
+          drop_rate: number
+          duration: number | null
+          effect: Json
+          id: string
+          image: string | null
+          is_active: boolean
+          name: string
+          rarity: string
+          sell_price: number
+          stackable: boolean
+          tradable: boolean
+          updated_at: string
+        }
+        Insert: {
+          buy_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          drop_rate?: number
+          duration?: number | null
+          effect?: Json
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name: string
+          rarity?: string
+          sell_price?: number
+          stackable?: boolean
+          tradable?: boolean
+          updated_at?: string
+        }
+        Update: {
+          buy_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          drop_rate?: number
+          duration?: number | null
+          effect?: Json
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name?: string
+          rarity?: string
+          sell_price?: number
+          stackable?: boolean
+          tradable?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      side_quests: {
+        Row: {
+          category: string
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          difficulty: string
+          estimated_minutes: number
+          gold_reward: number
+          id: string
+          is_active: boolean
+          rewards: Json
+          steps: Json
+          title_ar: string
+          title_en: string
+          updated_at: string
+          warning_ar: string | null
+          warning_en: string | null
+          xp_reward: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          difficulty?: string
+          estimated_minutes?: number
+          gold_reward?: number
+          id?: string
+          is_active?: boolean
+          rewards?: Json
+          steps?: Json
+          title_ar: string
+          title_en: string
+          updated_at?: string
+          warning_ar?: string | null
+          warning_en?: string | null
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          difficulty?: string
+          estimated_minutes?: number
+          gold_reward?: number
+          id?: string
+          is_active?: boolean
+          rewards?: Json
+          steps?: Json
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+          warning_ar?: string | null
+          warning_en?: string | null
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      admin_dashboard_stats: { Args: never; Returns: Json }
       apply_damage: {
         Args: { hp_delta: number; mp_delta: number; uid: string }
         Returns: {
@@ -373,6 +842,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       start_punishment:
         | {
             Args: { hours?: number; uid: string }
@@ -478,7 +955,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "admin" | "moderator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -605,6 +1082,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "admin", "moderator"],
+    },
   },
 } as const
