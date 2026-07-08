@@ -14,244 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
-      ad_events: {
+      gates: {
         Row: {
-          ad_id: string
+          battle_sessions: Json
           created_at: string
-          event_type: Database["public"]["Enums"]["ad_event_type"]
           id: string
-          metadata: Json
-          user_id: string | null
-        }
-        Insert: {
-          ad_id: string
-          created_at?: string
-          event_type: Database["public"]["Enums"]["ad_event_type"]
-          id?: string
-          metadata?: Json
-          user_id?: string | null
-        }
-        Update: {
-          ad_id?: string
-          created_at?: string
-          event_type?: Database["public"]["Enums"]["ad_event_type"]
-          id?: string
-          metadata?: Json
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ad_events_ad_id_fkey"
-            columns: ["ad_id"]
-            isOneToOne: false
-            referencedRelation: "ads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ad_packages: {
-        Row: {
-          created_at: string
-          gold_reward: number
-          id: string
-          is_active: boolean
-          max_duration_days: number
-          max_impressions: number | null
-          max_sponsored_missions: number
-          name: string
-          price_usd: number
-          priority_boost: number
-          slug: string
+          id_gate: string
+          name_gate: string
+          power_gate: number
+          rank_gate: string
+          rewards_log: Json
+          stats: Json
           updated_at: string
-          xp_reward: number
+          user_id: string
         }
         Insert: {
+          battle_sessions?: Json
           created_at?: string
-          gold_reward?: number
           id?: string
-          is_active?: boolean
-          max_duration_days?: number
-          max_impressions?: number | null
-          max_sponsored_missions?: number
-          name: string
-          price_usd?: number
-          priority_boost?: number
-          slug: string
+          id_gate: string
+          name_gate: string
+          power_gate?: number
+          rank_gate?: string
+          rewards_log?: Json
+          stats?: Json
           updated_at?: string
-          xp_reward?: number
+          user_id: string
         }
         Update: {
+          battle_sessions?: Json
           created_at?: string
-          gold_reward?: number
           id?: string
-          is_active?: boolean
-          max_duration_days?: number
-          max_impressions?: number | null
-          max_sponsored_missions?: number
-          name?: string
-          price_usd?: number
-          priority_boost?: number
-          slug?: string
+          id_gate?: string
+          name_gate?: string
+          power_gate?: number
+          rank_gate?: string
+          rewards_log?: Json
+          stats?: Json
           updated_at?: string
-          xp_reward?: number
+          user_id?: string
         }
         Relationships: []
-      }
-      ads: {
-        Row: {
-          advertiser_logo_url: string | null
-          advertiser_name: string | null
-          banner_size: Database["public"]["Enums"]["ad_banner_size"] | null
-          button_text: string | null
-          category: Database["public"]["Enums"]["ad_category"] | null
-          clicks_count: number
-          completion_requirements: Json
-          created_at: string
-          description: string | null
-          destination_url: string | null
-          difficulty: string | null
-          display_order: number
-          end_at: string | null
-          gold_reward: number
-          id: string
-          image_url: string | null
-          internal_route: string | null
-          last_clicked_at: string | null
-          last_viewed_at: string | null
-          mission_completions_count: number
-          mission_duration_minutes: number | null
-          mission_starts_count: number
-          package_id: string | null
-          placement: string
-          priority: number
-          repeat_interval_hours: number | null
-          reward_claims_count: number
-          reward_multiplier: number
-          skip_after_seconds: number | null
-          sponsor_logo_url: string | null
-          sponsor_name: string | null
-          start_at: string
-          status: Database["public"]["Enums"]["ad_status"]
-          subtitle: string | null
-          title: string
-          total_gold_granted: number
-          total_xp_granted: number
-          type: Database["public"]["Enums"]["ad_type"]
-          unique_views_count: number
-          updated_at: string
-          video_thumbnail_url: string | null
-          video_url: string | null
-          views_count: number
-          xp_reward: number
-        }
-        Insert: {
-          advertiser_logo_url?: string | null
-          advertiser_name?: string | null
-          banner_size?: Database["public"]["Enums"]["ad_banner_size"] | null
-          button_text?: string | null
-          category?: Database["public"]["Enums"]["ad_category"] | null
-          clicks_count?: number
-          completion_requirements?: Json
-          created_at?: string
-          description?: string | null
-          destination_url?: string | null
-          difficulty?: string | null
-          display_order?: number
-          end_at?: string | null
-          gold_reward?: number
-          id?: string
-          image_url?: string | null
-          internal_route?: string | null
-          last_clicked_at?: string | null
-          last_viewed_at?: string | null
-          mission_completions_count?: number
-          mission_duration_minutes?: number | null
-          mission_starts_count?: number
-          package_id?: string | null
-          placement?: string
-          priority?: number
-          repeat_interval_hours?: number | null
-          reward_claims_count?: number
-          reward_multiplier?: number
-          skip_after_seconds?: number | null
-          sponsor_logo_url?: string | null
-          sponsor_name?: string | null
-          start_at?: string
-          status?: Database["public"]["Enums"]["ad_status"]
-          subtitle?: string | null
-          title: string
-          total_gold_granted?: number
-          total_xp_granted?: number
-          type: Database["public"]["Enums"]["ad_type"]
-          unique_views_count?: number
-          updated_at?: string
-          video_thumbnail_url?: string | null
-          video_url?: string | null
-          views_count?: number
-          xp_reward?: number
-        }
-        Update: {
-          advertiser_logo_url?: string | null
-          advertiser_name?: string | null
-          banner_size?: Database["public"]["Enums"]["ad_banner_size"] | null
-          button_text?: string | null
-          category?: Database["public"]["Enums"]["ad_category"] | null
-          clicks_count?: number
-          completion_requirements?: Json
-          created_at?: string
-          description?: string | null
-          destination_url?: string | null
-          difficulty?: string | null
-          display_order?: number
-          end_at?: string | null
-          gold_reward?: number
-          id?: string
-          image_url?: string | null
-          internal_route?: string | null
-          last_clicked_at?: string | null
-          last_viewed_at?: string | null
-          mission_completions_count?: number
-          mission_duration_minutes?: number | null
-          mission_starts_count?: number
-          package_id?: string | null
-          placement?: string
-          priority?: number
-          repeat_interval_hours?: number | null
-          reward_claims_count?: number
-          reward_multiplier?: number
-          skip_after_seconds?: number | null
-          sponsor_logo_url?: string | null
-          sponsor_name?: string | null
-          start_at?: string
-          status?: Database["public"]["Enums"]["ad_status"]
-          subtitle?: string | null
-          title?: string
-          total_gold_granted?: number
-          total_xp_granted?: number
-          type?: Database["public"]["Enums"]["ad_type"]
-          unique_views_count?: number
-          updated_at?: string
-          video_thumbnail_url?: string | null
-          video_url?: string | null
-          views_count?: number
-          xp_reward?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ads_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "ad_packages"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       payments: {
         Row: {
           amount_usd: number
           created_at: string
           credited: boolean
-          credited_at: string | null
           gold_amount: number
           id: string
           nowpayments_invoice_id: string | null
@@ -260,7 +69,7 @@ export type Database = {
           pay_amount: number | null
           pay_currency: string
           provider: string
-          raw_payload: Json
+          raw_payload: Json | null
           status: string
           tx_hash: string | null
           updated_at: string
@@ -270,7 +79,6 @@ export type Database = {
           amount_usd: number
           created_at?: string
           credited?: boolean
-          credited_at?: string | null
           gold_amount: number
           id?: string
           nowpayments_invoice_id?: string | null
@@ -279,17 +87,16 @@ export type Database = {
           pay_amount?: number | null
           pay_currency: string
           provider?: string
-          raw_payload?: Json
+          raw_payload?: Json | null
           status?: string
           tx_hash?: string | null
           updated_at?: string
-          user_id?: string
+          user_id: string
         }
         Update: {
           amount_usd?: number
           created_at?: string
           credited?: boolean
-          credited_at?: string | null
           gold_amount?: number
           id?: string
           nowpayments_invoice_id?: string | null
@@ -298,11 +105,137 @@ export type Database = {
           pay_amount?: number | null
           pay_currency?: string
           provider?: string
-          raw_payload?: Json
+          raw_payload?: Json | null
           status?: string
           tx_hash?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      portals: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          danger: string
+          energy_density: string
+          id: string
+          id_portal: string
+          name: string
+          rank: string
+          required_level: number
+          required_power: number
+          rewards: Json
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          danger?: string
+          energy_density?: string
+          id?: string
+          id_portal: string
+          name: string
+          rank?: string
+          required_level?: number
+          required_power?: number
+          rewards?: Json
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          danger?: string
+          energy_density?: string
+          id?: string
+          id_portal?: string
+          name?: string
+          rank?: string
+          required_level?: number
+          required_power?: number
+          rewards?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          daily_deadline_at: string | null
+          gold_player: number
+          hp_last_tick_at: string
+          hp_max: number
+          hp_player: number
+          id_player: string
+          last_daily_check: string | null
+          level_player: number
+          mb_player: number
+          mp_max: number
+          name_player: string
+          punishment_active: boolean
+          punishment_count: number | null
+          punishment_end_at: string | null
+          punishment_reason: string | null
+          punishment_started_at: string | null
+          Quests: Json
+          rank_player: string
+          stats_player: Json
+          updated_at: string
+          user_id: string
+          void_player: number
+        }
+        Insert: {
+          created_at?: string
+          daily_deadline_at?: string | null
+          gold_player?: number
+          hp_last_tick_at?: string
+          hp_max?: number
+          hp_player?: number
+          id_player: string
+          last_daily_check?: string | null
+          level_player?: number
+          mb_player?: number
+          mp_max?: number
+          name_player?: string
+          punishment_active?: boolean
+          punishment_count?: number | null
+          punishment_end_at?: string | null
+          punishment_reason?: string | null
+          punishment_started_at?: string | null
+          Quests?: Json
+          rank_player?: string
+          stats_player?: Json
+          updated_at?: string
+          user_id: string
+          void_player?: number
+        }
+        Update: {
+          created_at?: string
+          daily_deadline_at?: string | null
+          gold_player?: number
+          hp_last_tick_at?: string
+          hp_max?: number
+          hp_player?: number
+          id_player?: string
+          last_daily_check?: string | null
+          level_player?: number
+          mb_player?: number
+          mp_max?: number
+          name_player?: string
+          punishment_active?: boolean
+          punishment_count?: number | null
+          punishment_end_at?: string | null
+          punishment_reason?: string | null
+          punishment_started_at?: string | null
+          Quests?: Json
+          rank_player?: string
+          stats_player?: Json
+          updated_at?: string
+          user_id?: string
+          void_player?: number
         }
         Relationships: []
       }
@@ -311,13 +244,114 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_damage: {
+        Args: { hp_delta: number; mp_delta: number; uid: string }
+        Returns: {
+          created_at: string
+          daily_deadline_at: string | null
+          gold_player: number
+          hp_last_tick_at: string
+          hp_max: number
+          hp_player: number
+          id_player: string
+          last_daily_check: string | null
+          level_player: number
+          mb_player: number
+          mp_max: number
+          name_player: string
+          punishment_active: boolean
+          punishment_count: number | null
+          punishment_end_at: string | null
+          punishment_reason: string | null
+          punishment_started_at: string | null
+          Quests: Json
+          rank_player: string
+          stats_player: Json
+          updated_at: string
+          user_id: string
+          void_player: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      apply_punishment_drain: {
+        Args: { uid: string }
+        Returns: {
+          created_at: string
+          daily_deadline_at: string | null
+          gold_player: number
+          hp_last_tick_at: string
+          hp_max: number
+          hp_player: number
+          id_player: string
+          last_daily_check: string | null
+          level_player: number
+          mb_player: number
+          mp_max: number
+          name_player: string
+          punishment_active: boolean
+          punishment_count: number | null
+          punishment_end_at: string | null
+          punishment_reason: string | null
+          punishment_started_at: string | null
+          Quests: Json
+          rank_player: string
+          stats_player: Json
+          updated_at: string
+          user_id: string
+          void_player: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      check_and_apply_punishment: {
+        Args: { uid: string }
+        Returns: {
+          created_at: string
+          daily_deadline_at: string | null
+          gold_player: number
+          hp_last_tick_at: string
+          hp_max: number
+          hp_player: number
+          id_player: string
+          last_daily_check: string | null
+          level_player: number
+          mb_player: number
+          mp_max: number
+          name_player: string
+          punishment_active: boolean
+          punishment_count: number | null
+          punishment_end_at: string | null
+          punishment_reason: string | null
+          punishment_started_at: string | null
+          Quests: Json
+          rank_player: string
+          stats_player: Json
+          updated_at: string
+          user_id: string
+          void_player: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       credit_payment_gold: {
         Args: { payment_id: string }
         Returns: {
           amount_usd: number
           created_at: string
           credited: boolean
-          credited_at: string | null
           gold_amount: number
           id: string
           nowpayments_invoice_id: string | null
@@ -326,7 +360,7 @@ export type Database = {
           pay_amount: number | null
           pay_currency: string
           provider: string
-          raw_payload: Json
+          raw_payload: Json | null
           status: string
           tx_hash: string | null
           updated_at: string
@@ -339,13 +373,112 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      start_punishment:
+        | {
+            Args: { hours?: number; uid: string }
+            Returns: {
+              created_at: string
+              daily_deadline_at: string | null
+              gold_player: number
+              hp_last_tick_at: string
+              hp_max: number
+              hp_player: number
+              id_player: string
+              last_daily_check: string | null
+              level_player: number
+              mb_player: number
+              mp_max: number
+              name_player: string
+              punishment_active: boolean
+              punishment_count: number | null
+              punishment_end_at: string | null
+              punishment_reason: string | null
+              punishment_started_at: string | null
+              Quests: Json
+              rank_player: string
+              stats_player: Json
+              updated_at: string
+              user_id: string
+              void_player: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "profiles"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { hours?: number; reason?: string; uid: string }
+            Returns: {
+              created_at: string
+              daily_deadline_at: string | null
+              gold_player: number
+              hp_last_tick_at: string
+              hp_max: number
+              hp_player: number
+              id_player: string
+              last_daily_check: string | null
+              level_player: number
+              mb_player: number
+              mp_max: number
+              name_player: string
+              punishment_active: boolean
+              punishment_count: number | null
+              punishment_end_at: string | null
+              punishment_reason: string | null
+              punishment_started_at: string | null
+              Quests: Json
+              rank_player: string
+              stats_player: Json
+              updated_at: string
+              user_id: string
+              void_player: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "profiles"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      update_quests: {
+        Args: { quests_json: Json; uid: string }
+        Returns: {
+          created_at: string
+          daily_deadline_at: string | null
+          gold_player: number
+          hp_last_tick_at: string
+          hp_max: number
+          hp_player: number
+          id_player: string
+          last_daily_check: string | null
+          level_player: number
+          mb_player: number
+          mp_max: number
+          name_player: string
+          punishment_active: boolean
+          punishment_count: number | null
+          punishment_end_at: string | null
+          punishment_reason: string | null
+          punishment_started_at: string | null
+          Quests: Json
+          rank_player: string
+          stats_player: Json
+          updated_at: string
+          user_id: string
+          void_player: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
-      ad_banner_size: "horizontal" | "square" | "full_width"
-      ad_category: "strength" | "mind" | "spirit" | "agility"
-      ad_event_type: "view" | "click" | "start" | "complete" | "claim"
-      ad_status: "active" | "inactive" | "archived"
-      ad_type: "banner" | "video" | "sponsored_mission"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -472,12 +605,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      ad_banner_size: ["horizontal", "square", "full_width"],
-      ad_category: ["strength", "mind", "spirit", "agility"],
-      ad_event_type: ["view", "click", "start", "complete", "claim"],
-      ad_status: ["active", "inactive", "archived"],
-      ad_type: ["banner", "video", "sponsored_mission"],
-    },
+    Enums: {},
   },
 } as const
