@@ -18,6 +18,41 @@ import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
+
+// Admin (lazy)
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/UsersPage"));
+const AdminRoles = lazy(() => import("./pages/admin/RolesPage"));
+const AdminAudit = lazy(() => import("./pages/admin/AuditLogsPage"));
+const AdminSettings = lazy(() => import("./pages/admin/SettingsPage"));
+const AdminPayments = lazy(() => import("./pages/admin/PaymentsPage"));
+const AdminCrud = lazy(() => import("./pages/admin/CrudPage"));
+
+import {
+  mainQuestsConfig,
+  sideQuestsConfig,
+  grandQuestsConfig,
+  adminGatesConfig,
+  mainItemsConfig,
+  sideItemsConfig,
+  eventsConfig,
+} from "./pages/admin/configs";
+
+const CRUD_CONFIGS = {
+  main: mainQuestsConfig,
+  side: sideQuestsConfig,
+  grand: grandQuestsConfig,
+  gates: adminGatesConfig,
+  mainItems: mainItemsConfig,
+  sideItems: sideItemsConfig,
+  events: eventsConfig,
+} as const;
+
+const AdminCrudRoute = ({ name }: { name: keyof typeof CRUD_CONFIGS }) => (
+  <AdminCrud config={CRUD_CONFIGS[name]} />
+);
 
 // Lazy chunks — preloaded on idle after auth.
 const Quests = lazy(() => import("./pages/Quests"));
@@ -102,6 +137,35 @@ const AppContent = () => {
     return <LoadingScreen fullScreen message="SETVOID" />;
   }
 
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isPublicRoute = location.pathname === '/reset-password' || location.pathname === '/auth/callback';
+
+  if (isAdminRoute || isPublicRoute) {
+    return (
+      <Suspense fallback={<LoadingScreen fullScreen message="LOADING" />}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="roles" element={<AdminRoles />} />
+            <Route path="audit-logs" element={<AdminAudit />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="main-quests" element={<AdminCrudRoute name="main" />} />
+            <Route path="side-quests" element={<AdminCrudRoute name="side" />} />
+            <Route path="grand-quests" element={<AdminCrudRoute name="grand" />} />
+            <Route path="gates" element={<AdminCrudRoute name="gates" />} />
+            <Route path="main-items" element={<AdminCrudRoute name="mainItems" />} />
+            <Route path="side-items" element={<AdminCrudRoute name="sideItems" />} />
+            <Route path="events" element={<AdminCrudRoute name="events" />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    );
+  }
+
   const needsPassword = typeof window !== 'undefined' && localStorage.getItem('needsPassword') === 'true';
   if (!user || !gameState.isOnboarded || needsPassword) {
     return <Onboarding />;
@@ -125,7 +189,6 @@ const AppContent = () => {
           <Route path="/market" element={<Market />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/onboarding" element={<Navigate to="/" replace />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/penalty" element={<Penalty />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

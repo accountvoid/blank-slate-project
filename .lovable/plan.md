@@ -1,108 +1,66 @@
+# SETVOID Enterprise Admin Panel
 
-# SETVOID — Core Systems Implementation Plan
+This is a large build. I'll ship it in phases so each piece is reviewable and testable. Nothing in the existing game UI/gameplay will change.
 
-A large, cross-cutting update. Split into 4 phases so each can be verified before moving on. Phase 1 changes the database; the rest are pure frontend.
+## Phase 0 — Backend audit (already done)
 
----
+The project is already 100% on your Supabase project (`ysniwvsuspzqyhfmngbn`). Auth, OTP, DB, Realtime, Storage, Edge Functions all use `@supabase/supabase-js` directly. No Lovable Cloud SDK, client, or endpoint is referenced anywhere. The final report will restate this with `rg` proof.
 
-## Phase 1 — Permanent Gate IDs + Server-side Punishment & HP (DB migration)
+## Phase 1 — Security foundation (DB migration)
 
-**Why first:** all later code depends on the new schema.
+New tables + RLS in one migration:
 
-### 1A. Permanent Gate ID system
-- Add Postgres sequence `gate_id_seq` and trigger so every new row in `public.gates` auto-fills `id_gate` as `GATE-0001`, `GATE-0002`, … (zero-padded, immutable).
-- Add `BEFORE UPDATE` trigger that blocks any change to `id_gate` (immutable invariant).
-- Add columns to `gates`:
-  - `stats jsonb default '{}'` — performance stats (clears, fastest_time, etc.)
-  - `rewards_log jsonb default '[]'` — reward history
-  - `battle_sessions jsonb default '[]'` — combat history references
-- Frontend: `Gate.id` already exists, add `idGate` field surfaced from DB. All gate cards/loot/battle modals key off `idGate`.
+- `app_role` enum: `super_admin | admin | moderator`
+- `user_roles(user_id, role)` + `has_role(uid, role)` SECURITY DEFINER (recursion-safe)
+- `is_admin(uid)` helper (any admin role)
+- `audit_logs(id, actor_id, action, table_name, record_id, before, after, ip, user_agent, created_at)`
+- `system_settings(key, value jsonb, updated_by, updated_at)`
+- RLS on all new tables (only super_admin manages roles; all admins read audit logs; only super_admin writes settings)
+- GRANTs per project rules
 
-### 1B. Persistent Punishment + HP SSoT
-Add columns to `public.profiles`:
-- `punishment_active boolean default false`
-- `punishment_end_at timestamptz`
-- `punishment_started_at timestamptz`
-- `hp_last_tick_at timestamptz default now()`
-- `hp_max integer default 100`
+## Phase 2 — Admin content tables (DB migration)
 
-Add Postgres function `apply_punishment_drain(uid uuid)`:
-- If `punishment_active` and `now() < punishment_end_at`: compute elapsed seconds since `hp_last_tick_at`, drain HP at fixed rate (1 HP / 30s), clamp ≥ 1, update `hp_last_tick_at`.
-- If `now() >= punishment_end_at`: clear punishment flags.
-- Returns the updated row.
+- `main_quests` and `side_quests` (identical schema): bilingual title/description, category, difficulty, estimated_minutes, xp/gold reward, bilingual warning, `steps jsonb` (dynamic steps with title/description/duration/reps/custom/order/optional/completion), `rewards jsonb` (xp, gold, items[], custom), is_active, timestamps
+- `grand_quests`: name, description, banner, image, start/end, rewards, priority, visibility, is_active
+- Extend existing `gates` table only if columns missing (image, background, cooldown, drops, difficulty, open/close time, enabled) — additive, non-breaking
+- `main_items`, `side_items`: name, description, rarity, category, image, effect, duration, stackable, sell/buy price, tradable, drop_rate
+- `events`: name, description, banner, image, start/end, rules, rewards, visibility, enabled
+- Each table: RLS = public read for active rows, write only via `has_role(super_admin)`; audit-log trigger on INSERT/UPDATE/DELETE
 
-Frontend calls `apply_punishment_drain` on app focus, on route enter for `/penalty`, and via a 30-second interval while the tab is open. This guarantees the drain persists across logout/close because it is computed from timestamps, not local counters.
+## Phase 3 — Admin frontend
 
-All grants/RLS already permit `auth.uid() = user_id`; we'll add `EXECUTE` grant on the function to `authenticated`.
+- Route: `/admin` (guarded by `useIsAdmin()` — checks `user_roles` server-side via RPC; redirects if not admin)
+- Layout: shadcn sidebar with sections: Dashboard, Users, Roles, Main Quests, Side Quests, Grand Quests, Gates, Main Items, Side Items, Events, Payments, Audit Logs, System Settings
+- Dashboard: totals (users, gold sum, gates, quests, events, purchases, revenue), today's registrations/logins, newest users/payments, realtime via Supabase channels
+- Generic reusable `<CrudTable>` (search, filter, pagination, sort) + `<CrudForm>` driven by a schema descriptor per table → Create/Edit/Delete/Duplicate/Activate/Deactivate/Preview
+- Steps editor: dynamic list, drag-reorder, per-step fields
+- Rewards editor: XP/Gold/Items multi-select + custom JSON
+- Every mutation → audit log entry (server-side trigger, not client-trusted)
+- All queries respect RLS; role checked via RPC on every admin page mount
 
-### 1C. HP as Single Source of Truth
-- Remove HP duplication in local `useGameState` for Gates/Battle/Penalty: HP read/write goes through `useProfile` (which already wraps `profiles`).
-- New hook `useHp()` exposes `{ hp, maxHp, setHp, damage, heal }` writing to `profiles.hp_player` + mirroring into game state for legacy consumers.
+## Phase 4 — OTP / Auth verification
 
----
+Auth is already 100% Supabase (`useAuth.ts` uses `supabase.auth.signInWithOtp`, `verifyOtp`, `signUp`, `signInWithPassword`, `updateUser`, `signOut`). I'll add a `/reset-password` page if missing and confirm redirect URLs. No code paths call anything else.
 
-## Phase 2 — Data prefetching & route preloading
+## Phase 5 — Final report
 
-- Add `@tanstack/react-query` `QueryClient` at app root with sane defaults (`staleTime: 60s`, `gcTime: 5m`, `refetchOnWindowFocus: false` except profile).
-- On successful login (`useAuth`), kick off background `prefetchQuery` for: profile, gates, inventory, quests, achievements, rankings.
-- Route preloading: convert the heavy pages to `React.lazy` with `prefetch on idle` — `Inventory`, `Gates`, `Quests`, `Stats` (Rankings), `Battle`, `Penalty`. After login we trigger the lazy chunks via `requestIdleCallback` so subsequent navigations are instant.
-- Global asset preloader: build `src/lib/assetPreload.ts` listing critical PNGs/Lottie URLs and `<link rel="preload">` them from `index.html` head plus an `Image()` warmup on app boot.
+Markdown report at `ADMIN_MIGRATION_REPORT.md`:
+- List of every module touched
+- Every new table + RLS summary
+- Grep proof that no `lovable-cloud` / `lovable_cloud` references exist
+- CRUD checklist per table
+- Role/permission matrix
 
----
+## Technical notes
 
-## Phase 3 — Visual continuity (Skeletons + Lottie)
+- Types file `src/integrations/supabase/types.ts` regenerates automatically after each approved migration — code that depends on new tables lands after the migration.
+- I will bootstrap the first `super_admin` by asking you for the email of the user you want promoted (via a separate insert once tables exist). No hardcoded admin.
+- Existing tables (`profiles`, `gates`, `payments`, `portals`) are not restructured. Only additive columns where required.
+- No changes to game UI, quest card visuals, HUD, dungeon, penalty screens, or bottom nav.
 
-- Replace the `Loadingsetvoid.gif` reference with a Lottie animation (`lottie-react` + JSON file under `public/lottie/`). Keep `SETVOIDUI.png` as the static fallback.
-- Add `Skeleton` placeholders (existing `components/ui/skeleton.tsx`) wherever data fetches gate render: profile card, gate list, inventory grid, quest list, market grid.
-- Skeletons mirror final card dimensions exactly to avoid CLS.
+## What I need from you to start
 
----
+1. Approval of this plan.
+2. Email of the account that should become the first `super_admin`.
 
-## Phase 4 — Layout stability (strict dimensions)
-
-- Add new utility classes in `index.css`:
-  - `.frame-portrait` → fixed `aspect-ratio: 3/4`, `width:100%`, `object-fit:cover`, `border-radius: var(--radius)`.
-  - `.frame-square`, `.frame-card`, `.frame-banner` for the recurring sizes.
-- Audit and convert all `<img>` usages in: `ProfileCard`, `CharacterAvatar`, `GateLootModal`, `InventoryPanel`, `Market`, `Battle`, `Dungeon` cards — to use the `frame-*` classes + explicit `width`/`height` attrs.
-- Ensure every preload-prone container reserves space (no `h-auto` on image cards).
-
----
-
-## Technical notes (for engineers)
-
-```text
-profiles (additions)
-  punishment_active     bool
-  punishment_end_at     timestamptz
-  punishment_started_at timestamptz
-  hp_last_tick_at       timestamptz
-  hp_max                int
-
-gates (additions)
-  stats            jsonb
-  rewards_log      jsonb
-  battle_sessions  jsonb
-  id_gate          (trigger-managed, immutable: GATE-XXXX)
-
-fn apply_punishment_drain(uid)   -- server-side HP drain
-trg gates_lock_id_gate           -- immutability
-trg gates_assign_id_gate         -- auto numbering
-```
-
-State layer:
-- Keep `useGameState` for non-server stuff (quests, inventory cache).
-- New `useHp` becomes the only writer of HP → `profiles.hp_player`.
-- TanStack Query keys: `['profile', uid]`, `['gates', uid]`, `['inventory', uid]`, `['quests', uid]`.
-
----
-
-## Deliverables per phase
-
-1. SQL migration + `useHp`, `usePunishment` hooks, refactor of `Penalty.tsx`, `Battle.tsx`, `Dungeon.tsx`, `Gates.tsx`.
-2. React Query provider, prefetch hook, lazy routes, `assetPreload.ts`.
-3. Lottie loader, Skeleton placements.
-4. `frame-*` utilities and image audit.
-
-After Phase 1 lands and the regenerated `types.ts` is in place, Phases 2–4 can ship without further DB work.
-
-Confirm to proceed, or tell me to start with a specific phase only.
+Once approved I'll start with Phase 1 migration.
